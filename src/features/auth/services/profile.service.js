@@ -15,6 +15,14 @@ export const ProfileService = {
       .maybeSingle()
   },
 
+  async getPublicProfile(id) {
+    return await supabase
+      .from('profiles_public')
+      .select('*, site_settings(channel_slug, site_name)')
+      .eq('id', id)
+      .maybeSingle()
+  },
+
   async updateRole(id, role) {
     return await supabase.from('profiles').update({ role, updated_at: new Date().toISOString() }).eq('id', id)
   },

@@ -50,7 +50,7 @@ export default function AuthorPage() {
       const { data: channelData } = await PostService.getChannelBySlug(slug)
       if (!channelData) throw new Error('القناة غير موجودة')
 
-      const { data: profileData } = await ProfileService.getProfile(channelData.author_id)
+      const { data: profileData } = await ProfileService.getPublicProfile(channelData.author_id)
       setChannel({ ...channelData, profiles: profileData })
 
       const { data: postsData } = await PostService.getAuthorPosts(channelData.author_id)

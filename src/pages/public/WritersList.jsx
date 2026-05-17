@@ -21,10 +21,10 @@ export default function WritersList() {
       if (channelsError) throw channelsError
       if (!channels || channels.length === 0) return []
 
-      // 2. Fetch profiles including 'bio'
+      // 2. Fetch profiles including 'bio' from public view
       const authorIds = channels.map(c => c.author_id).filter(Boolean)
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_public')
         .select('id, full_name, avatar_url, bio')
         .in('id', authorIds)
       

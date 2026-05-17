@@ -34,7 +34,7 @@ export default function PublicProfile() {
   async function fetchProfile() {
     setLoading(true)
     try {
-      const { data, error } = await ProfileService.getProfile(id)
+      const { data, error } = await ProfileService.getPublicProfile(id)
 
       if (error) throw error
       setProfile(data)
