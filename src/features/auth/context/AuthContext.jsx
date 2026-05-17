@@ -103,6 +103,7 @@ export function AuthProvider({ children }) {
       isMounted = false
       clearTimeout(initTimeoutId)
       subscription.unsubscribe()
+    }
   }, [fetchProfileData])
 
   // الاشتراك في التحديثات الفورية للبروفايل (Real-time Profile updates)
