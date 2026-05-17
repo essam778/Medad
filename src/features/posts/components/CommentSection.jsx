@@ -52,8 +52,7 @@ export function CommentSection({ postId, initialComments = [], user, profile, on
 
     setSubmitting(true)
     try {
-      const { data, error } = await PostService.addComment(postId, user.id, newComment, replyingTo?.id)
-      if (error) throw error
+      const data = await PostService.addComment(postId, user.id, newComment, replyingTo?.id)
       
       const updatedComments = [data, ...comments]
       setComments(updatedComments)
@@ -69,8 +68,8 @@ export function CommentSection({ postId, initialComments = [], user, profile, on
     }
   }
 
-  const topLevelComments = comments.filter(c => !c.parent_id)
-  const getReplies = (parentId) => comments.filter(c => c.parent_id === parentId).sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
+  const topLevelComments = comments.filter(c => c && !c.parent_id)
+  const getReplies = (parentId) => comments.filter(c => c && c.parent_id === parentId).sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
 
   const renderCommentTree = (commentList, depth = 0) => (
     <div className={`space-y-10 ${depth > 0 ? 'mt-8 pr-6 md:pr-12 border-r-2 border-white/5' : ''}`}>
