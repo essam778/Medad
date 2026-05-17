@@ -11,15 +11,17 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../components/shared/ToastProvider'
 import ConfirmModal from '../../components/shared/ConfirmModal'
 import OptimizedImage from '../../components/shared/OptimizedImage'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function AdminChannels() {
   const toast = useToast()
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [deleting, setDeleting] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, channel: null })
 
-  const { data, isLoading, refetch } = useAdminChannels({ page, search })
+  const { data, isLoading } = useAdminChannels({ page, search })
   
   const channels = data?.data || []
   const count = data?.count || 0
@@ -27,17 +29,20 @@ export default function AdminChannels() {
 
   async function handleDeleteChannel() {
     if (!deleteConfirm.channel) return
+    // الحذف يعتمد على author_id وليس id الصف، لأن site_settings تُعرَّف بمفتاح author_id
+    const authorId = deleteConfirm.channel.author_id
     const channelId = deleteConfirm.channel.id
     setDeleting(channelId)
     try {
       const { error } = await supabase
         .from('site_settings')
         .delete()
-        .eq('id', channelId)
+        .eq('author_id', authorId)
       if (error) throw error
-      toast.success('تم حذف هوية القناة بنجاح')
+      toast.success('تم حذف القناة بنجاح')
       setDeleteConfirm({ open: false, channel: null })
-      refetch()
+      // إعادة تحميل القائمة عبر إلغاء صلاحية الكاش
+      queryClient.invalidateQueries({ queryKey: ['admin', 'channels'] })
     } catch (err) {
       toast.error('خطأ في الحذف: ' + err.message)
     } finally {
@@ -53,7 +58,7 @@ export default function AdminChannels() {
         .eq('id', authorId)
       if (error) throw error
       toast.success(isBanned ? 'تم رفع الحظر عن المبدع' : 'تم حظر المبدع نهائياً')
-      refetch()
+      queryClient.invalidateQueries({ queryKey: ['admin', 'channels'] })
     } catch (err) {
       toast.error(getErrorMessage(err))
     }

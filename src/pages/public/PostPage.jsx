@@ -26,7 +26,6 @@ export default function PostPage() {
   const [liked, setLiked] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [likeCount, setLikeCount] = useState(0)
   const [authorChannel, setAuthorChannel] = useState(null)
   const [comments, setComments] = useState([])
   const [notice, setNotice] = useState({ open: false, title: '', message: '', variant: 'info', onAction: null })
@@ -38,6 +37,7 @@ export default function PostPage() {
   const [toc, setToc] = useState([])
   const [reactionStats, setReactionStats] = useState({ like: 0, love: 0, haha: 0, sad: 0, angry: 0, total: 0 })
   const reactionTimeoutRef = useRef(null)
+  const longPressTimerRef = useRef(null)
 
 
   useEffect(() => {
@@ -90,7 +90,6 @@ export default function PostPage() {
       }
 
       setPost(data)
-      setLikeCount(data.likes_count || 0)
 
       const { data: channelData } = await PostService.getAuthorChannel(data.author_id)
       setAuthorChannel(channelData)
@@ -302,15 +301,64 @@ export default function PostPage() {
               </nav>
             </div>
           </aside>
-          <article className="flex-1 max-w-4xl">
-            <div className="aspect-video rounded-[3rem] overflow-hidden border border-white/10 mb-16 shadow-2xl">
-                <OptimizedImage src={getFullImageUrl(post.cover_image_url)} alt={post.title} width={1200} height={675} className="w-full h-full object-cover" />
-            </div>
-            <div className="prose prose-invert prose-purple max-w-none prose-p:text-white/90 prose-p:text-xl prose-p:leading-[1.8] prose-p:font-bold prose-p:mb-10 prose-headings:font-black prose-headings:italic prose-headings:mb-8 prose-headings:text-white prose-h2:text-3xl md:prose-h2:text-5xl prose-h2:mt-20 prose-blockquote:border-r-4 prose-blockquote:border-purple-600 prose-blockquote:bg-purple-600/5 prose-blockquote:p-8 prose-blockquote:rounded-3xl prose-blockquote:italic prose-img:rounded-[2.5rem] prose-img:shadow-2xl prose-img:border prose-img:border-white/5" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content).replace(/<(h[23])>(.*?)<\/\1>/gi, (match, tag, content, offset) => `<${tag} id="heading-${offset}">${content}</${tag}>`) }} />
-            <div className="mt-32 pt-16 border-t border-white/5" id="comments-section">
-                <CommentSection postId={post.id} initialComments={comments} user={user} profile={profile} disabled={post.comments_disabled} />
-            </div>
-          </article>
+       <article className="flex-1 max-w-4xl">
+  <div className="aspect-video rounded-[3rem] overflow-hidden border border-white/10 mb-16 shadow-2xl">
+    <OptimizedImage
+      src={getFullImageUrl(post.cover_image_url)}
+      alt={post.title}
+      width={1200}
+      height={675}
+      className="w-full h-full object-cover"
+    />
+  </div>
+
+  <div
+    className="prose prose-invert prose-purple max-w-none prose-p:text-white/90 prose-p:text-xl prose-p:leading-[1.8] prose-p:font-bold prose-p:mb-10 prose-headings:font-black prose-headings:italic prose-headings:mb-8 prose-headings:text-white prose-h2:text-3xl md:prose-h2:text-5xl prose-h2:mt-20 prose-blockquote:border-r-4 prose-blockquote:border-purple-600 prose-blockquote:bg-purple-600/5 prose-blockquote:p-8 prose-blockquote:rounded-3xl prose-blockquote:italic prose-img:rounded-[2.5rem] prose-img:shadow-2xl prose-img:border prose-img:border-white/5"
+    dangerouslySetInnerHTML={{
+      __html: DOMPurify.sanitize(post.content, {
+        ALLOWED_TAGS: [
+          'p',
+          'h1',
+          'h2',
+          'h3',
+          'strong',
+          'em',
+          'ul',
+          'ol',
+          'li',
+          'blockquote',
+          'code',
+          'pre',
+          'a',
+          'img',
+          'br'
+        ],
+        ALLOWED_ATTR: [
+          'href',
+          'src',
+          'alt',
+          'title',
+          'target',
+          'rel'
+        ]
+      }).replace(
+        /<(h[23])>(.*?)<\/\1>/gi,
+        (match, tag, content, offset) =>
+          `<${tag} id="heading-${offset}">${content}</${tag}>`
+      )
+    }}
+  />
+
+  <div className="mt-32 pt-16 border-t border-white/5" id="comments-section">
+    <CommentSection
+      postId={post.id}
+      initialComments={comments}
+      user={user}
+      profile={profile}
+      disabled={post.comments_disabled}
+    />
+  </div>
+</article>
         </div>
       </main>
 

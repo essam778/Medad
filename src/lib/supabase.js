@@ -27,7 +27,6 @@ export async function forceRefreshSession() {
     return null
   }
   
-  // إذا كانت الجلسة موجودة ولكن منتهية، قم بتحديثها
   if (session && session.expires_at && Date.now() / 1000 > session.expires_at) {
     const { data: { session: newSession }, error: refreshError } = await supabase.auth.refreshSession()
     if (refreshError) {
@@ -43,7 +42,6 @@ export async function forceRefreshSession() {
 export async function getProfileWithRetry(userId, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
-      // تأخير تدريجي بين المحاولات
       if (i > 0) {
         await new Promise(resolve => setTimeout(resolve, 100 * i))
       }
@@ -63,7 +61,6 @@ export async function getProfileWithRetry(userId, maxRetries = 3) {
         return data
       }
       
-      // إذا لم يوجد بروفايل، قم بإنشائه
       const { data: inserted } = await supabase
         .from('profiles')
         .insert({
@@ -84,25 +81,59 @@ export async function getProfileWithRetry(userId, maxRetries = 3) {
 }
 
 // =============================================
+// التحقق من Magic Bytes الحقيقية للملف
+// =============================================
+function validateImageMagicBytes(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = (e) => {
+      const arr = new Uint8Array(e.target.result).subarray(0, 4)
+      const header = Array.from(arr)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+      // PNG: 89504e47
+      // JPEG: ffd8ff
+      // WebP: 52494646
+      // GIF: 47494638
+      const isValid =
+        header.startsWith('89504e47') ||
+        header.startsWith('ffd8ff')   ||
+        header.startsWith('52494646') ||
+        header.startsWith('47494638')
+      resolve(isValid)
+    }
+    reader.onerror = () => resolve(false)
+    reader.readAsArrayBuffer(file.slice(0, 4))
+  })
+}
+
+// =============================================
 // رفع صورة إلى Supabase Storage مع قيود أمان صارمة
 // =============================================
 export async function uploadImage(file, bucket = 'covers') {
   if (!file) throw new Error('لم يتم اختيار ملف')
   if (typeof file?.name !== 'string') throw new Error('الملف المختار غير صالح')
 
-  // قيود الأحجام بناءً على نوع الوعاء (Operational Safety)
+  // قيود الأحجام بناءً على نوع الوعاء
   const isAvatar = bucket === 'profiles' || bucket === 'logos'
-  const maxSize = isAvatar ? 1 * 1024 * 1024 : 2 * 1024 * 1024 // 1MB للصور الشخصية، 2MB للغلاف
+  const maxSize = isAvatar ? 1 * 1024 * 1024 : 2 * 1024 * 1024
   
   if (file.size > maxSize) {
     throw new Error(`حجم الملف كبير جداً. الحد الأقصى هو ${isAvatar ? '1MB' : '2MB'}`)
   }
   
+  // التحقق من MIME type المُعلن
   if (!file.type?.startsWith('image/')) {
     throw new Error('يسمح فقط برفع ملفات الصور (PNG, JPG, WebP)')
   }
 
-  // تنظيف اسم الملف (Sanitization) وتوليد اسم فريد
+  // التحقق من Magic Bytes الحقيقية — يمنع رفع ملفات مزورة
+  const isValidImage = await validateImageMagicBytes(file)
+  if (!isValidImage) {
+    throw new Error('الملف المختار ليس صورة حقيقية')
+  }
+
+  // تنظيف اسم الملف وتوليد اسم فريد
   const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
   const safeName = file.name.split('.')[0].replace(/[^a-z0-9]/gi, '_').toLowerCase()
   const timestamp = new Date().getTime()
@@ -113,7 +144,7 @@ export async function uploadImage(file, bucket = 'covers') {
     .upload(fileName, file, { 
       cacheControl: '3600', 
       upsert: false,
-      contentType: file.type // تحديد نوع المحتوى بدقة
+      contentType: file.type
     })
 
   if (error) {

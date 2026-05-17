@@ -158,21 +158,26 @@ export const PostService = {
   },
 
   async setReaction(postId, userId, type) {
-    const { data: existing } = await supabase
+    const { data: existing, error: selectError } = await supabase
       .from('post_reactions')
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
       .maybeSingle()
 
+    if (selectError) throw selectError
+
     if (existing) {
       if (existing.type === type) {
-        return await supabase.from('post_reactions').delete().eq('id', existing.id)
+        const { error: deleteError } = await supabase.from('post_reactions').delete().eq('id', existing.id)
+        if (deleteError) throw deleteError
       } else {
-        return await supabase.from('post_reactions').update({ type }).eq('id', existing.id)
+        const { error: updateError } = await supabase.from('post_reactions').update({ type }).eq('id', existing.id)
+        if (updateError) throw updateError
       }
     } else {
-      return await supabase.from('post_reactions').insert({ post_id: postId, user_id: userId, type })
+      const { error: insertError } = await supabase.from('post_reactions').insert({ post_id: postId, user_id: userId, type })
+      if (insertError) throw insertError
     }
   },
 
@@ -199,17 +204,21 @@ export const PostService = {
   },
 
   async toggleSave(postId, userId) {
-    const { data: existing } = await supabase
+    const { data: existing, error: selectError } = await supabase
       .from('saved_posts')
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
       .maybeSingle()
 
+    if (selectError) throw selectError
+
     if (existing) {
-      return await supabase.from('saved_posts').delete().eq('post_id', postId).eq('user_id', userId)
+      const { error: deleteError } = await supabase.from('saved_posts').delete().eq('post_id', postId).eq('user_id', userId)
+      if (deleteError) throw deleteError
     } else {
-      return await supabase.from('saved_posts').insert({ post_id: postId, user_id: userId })
+      const { error: insertError } = await supabase.from('saved_posts').insert({ post_id: postId, user_id: userId })
+      if (insertError) throw insertError
     }
   },
 
@@ -224,11 +233,13 @@ export const PostService = {
   async addComment(postId, userId, content, parentId = null) {
     const payload = { post_id: postId, user_id: userId, content }
     if (parentId) payload.parent_id = parentId
-    return await supabase
+    const { data, error } = await supabase
       .from('comments')
       .insert(payload)
       .select('*, profiles(full_name, avatar_url, site_settings(channel_slug))')
       .single()
+    if (error) throw error
+    return data
   },
 
   async getAuthorChannel(authorId) {
@@ -275,17 +286,21 @@ export const PostService = {
   },
 
   async toggleFollow(followerId, followingId) {
-    const { data: existing } = await supabase
+    const { data: existing, error: selectError } = await supabase
       .from('follows')
       .select('*')
       .eq('follower_id', followerId)
       .eq('following_id', followingId)
       .maybeSingle()
 
+    if (selectError) throw selectError
+
     if (existing) {
-      return await supabase.from('follows').delete().eq('id', existing.id)
+      const { error: deleteError } = await supabase.from('follows').delete().eq('id', existing.id)
+      if (deleteError) throw deleteError
     } else {
-      return await supabase.from('follows').insert({ follower_id: followerId, following_id: followingId })
+      const { error: insertError } = await supabase.from('follows').insert({ follower_id: followerId, following_id: followingId })
+      if (insertError) throw insertError
     }
   },
 
