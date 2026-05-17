@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, MapPin, Send, MessageSquare, Loader2, Sparkles, Phone, Globe } from 'lucide-react'
+import { Mail, MapPin, Send, MessageSquare, Loader2, Sparkles, Phone, Clock, Globe } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { useSettings } from '../../hooks/useSettings'
 
@@ -58,6 +58,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
             className="lg:col-span-1 space-y-6"
           >
+            {/* البريد الإلكتروني */}
             <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
                <div className="w-16 h-16 bg-purple-600/10 rounded-2xl flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform border border-purple-500/20 shadow-xl">
                  <Mail size={28} />
@@ -70,38 +71,60 @@ export default function ContactPage() {
                </div>
             </div>
 
+            {/* الهاتف للتواصل */}
             <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
                <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform border border-blue-500/20 shadow-xl">
-                 <MessageSquare size={28} />
+                 <Phone size={28} />
                </div>
                <div>
-                 <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">الدعم الفني</p>
-                 <p className="text-lg font-black text-white group-hover:text-blue-400 transition-colors">
-                   {settings?.support_email ? `دعم ${settings.site_name || 'مداد'}` : 'support@midad.com'}
+                 <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">رقم الهاتف</p>
+                 {settings?.contact_phone ? (
+                   <a href={`tel:${settings.contact_phone}`} className="text-lg font-black text-white group-hover:text-blue-400 transition-colors" dir="ltr">
+                     {settings.contact_phone}
+                   </a>
+                 ) : (
+                   <p className="text-lg font-black text-white/30">غير متوفر حالياً</p>
+                 )}
+               </div>
+            </div>
+
+            {/* ساعات العمل والدعم */}
+            <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
+               <div className="w-16 h-16 bg-amber-600/10 rounded-2xl flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform border border-amber-500/20 shadow-xl">
+                 <Clock size={28} />
+               </div>
+               <div>
+                 <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">أوقات الدعم والعمل</p>
+                 <p className="text-lg font-black text-white group-hover:text-amber-400 transition-colors">
+                   {settings?.contact_hours || 'يومياً من 9:00 ص إلى 10:00 م'}
                  </p>
                </div>
             </div>
 
-            {settings?.contact_us ? (
+            {/* المقر الرئيسي / العنوان */}
+            <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
+               <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform border border-green-500/20 shadow-xl">
+                 <MapPin size={28} />
+               </div>
+               <div>
+                 <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">المقر الرئيسي</p>
+                 <p className="text-lg font-black text-white group-hover:text-green-400 transition-colors">
+                   {settings?.contact_address || 'القاهرة، مصر'}
+                 </p>
+               </div>
+            </div>
+
+            {/* وصف التواصل الإضافي */}
+            {settings?.contact_us && (
               <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-start gap-6 group hover:border-purple-500/30 transition-all">
-                 <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform border border-green-500/20 shadow-xl shrink-0">
+                 <div className="w-16 h-16 bg-purple-600/10 rounded-2xl flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform border border-purple-500/20 shadow-xl shrink-0">
                    <Globe size={28} />
                  </div>
                  <div>
-                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">معلومات إضافية</p>
+                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">تفاصيل إضافية</p>
                    <p className="text-sm font-bold text-white/70 leading-relaxed whitespace-pre-wrap">
                      {settings.contact_us}
                    </p>
-                 </div>
-              </div>
-            ) : (
-              <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
-                 <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform border border-green-500/20 shadow-xl">
-                   <MapPin size={28} />
-                 </div>
-                 <div>
-                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">المقر الرئيسي</p>
-                   <p className="text-lg font-black text-white group-hover:text-green-400 transition-colors">القاهرة، مصر</p>
                  </div>
               </div>
             )}

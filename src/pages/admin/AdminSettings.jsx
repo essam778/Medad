@@ -6,7 +6,7 @@ import {
   Save, Upload, Globe, ShieldCheck, FileText, 
   Mail, MessageSquare, Info, Loader2, Check, RefreshCw, Settings,
   Twitter, Facebook, Instagram, Github, Linkedin, Share2, Sparkles, Zap,
-  HelpCircle, Trash2, Plus
+  HelpCircle, Trash2, Plus, Phone, MapPin, Clock
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useToast } from '../../components/shared/ToastProvider'
@@ -22,6 +22,7 @@ export default function AdminSettings() {
     social_links: { twitter: '', facebook: '', instagram: '', linkedin: '', github: '' },
     support_email: '', privacy_policy: '', terms_of_service: '',
     about_us: '', contact_us: '',
+    contact_phone: '', contact_address: '', contact_hours: '',
     faq: []
   })
   const [uploading, setUploading] = useState(false)
@@ -61,6 +62,9 @@ export default function AdminSettings() {
         terms_of_service: settings.terms_of_service || '',
         about_us: settings.about_us || '',
         contact_us: settings.contact_us || '',
+        contact_phone: settings.contact_phone || '',
+        contact_address: settings.contact_address || '',
+        contact_hours: settings.contact_hours || '',
         faq: parsedFaq
       })
     }
@@ -77,7 +81,7 @@ export default function AdminSettings() {
       const url = await uploadImage(file, 'logos')
       set('logo_url', url)
       toast.success('تم رفع الشعار بنجاح')
-    } catch (err) { toast.error('فشل الرفع') } finally { setUploading(false) }
+    } catch (err) { toast.error('فشل الرفع: ' + err.message) } finally { setUploading(false) }
   }
 
   async function handleSave(e) {
@@ -85,7 +89,7 @@ export default function AdminSettings() {
     try {
       await updateSettings.mutateAsync(form)
       setSaved(true)
-      toast.success('تم تحديث إعدادات المنصة')
+      toast.success('تم تحديث إعدادات المنصة بنجاح')
       setTimeout(() => setSaved(false), 3000)
     } catch (err) { toast.error(getErrorMessage(err)) }
   }
@@ -133,7 +137,7 @@ export default function AdminSettings() {
                 </div>
               </div>
               <label className="absolute -bottom-4 -left-4 p-5 bg-purple-600 text-white rounded-3xl shadow-2xl cursor-pointer hover:bg-purple-500 transition-all border-4 border-[#0d0d0d] group-hover/logo:scale-110">
-                <RefreshCw size={24} />
+                {uploading ? <Loader2 className="animate-spin" size={24} /> : <RefreshCw size={24} />}
                 <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} disabled={uploading} />
               </label>
             </div>
@@ -225,18 +229,65 @@ export default function AdminSettings() {
               />
             </div>
 
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-2 flex items-center gap-3">
-                <MessageSquare size={16} className="text-purple-500" /> معلومات تواصل معنا (Contact Details)
-              </label>
-              <textarea 
-                value={form.contact_us} onChange={e => set('contact_us', e.target.value)} rows={4}
-                className="w-full bg-white/5 border border-white/10 rounded-[2.5rem] py-6 px-8 font-medium text-base text-white/80 outline-none focus:border-purple-500 transition-all resize-none shadow-inner"
-                placeholder="أدخل معلومات الاتصال والمقر الرئيسي وساعات العمل ليتم عرضها في صفحة تواصل معنا..."
-              />
+            {/* Detailed Contact Fields */}
+            <div className="pt-8 border-t border-white/5 space-y-8">
+              <h3 className="text-lg font-black text-white flex items-center gap-3">
+                <MessageSquare className="text-purple-500" size={18} />
+                تفاصيل صفحة تواصل معنا (Contact Fields)
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] flex items-center gap-3 px-2">
+                    <Phone size={14} className="text-purple-400" /> رقم الهاتف للتواصل
+                  </label>
+                  <input 
+                    type="text" value={form.contact_phone} 
+                    onChange={e => set('contact_phone', e.target.value)} 
+                    placeholder="مثال: 20123456789+"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 font-bold text-sm text-white/80 outline-none focus:border-purple-500 transition-all shadow-inner text-left"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] flex items-center gap-3 px-2">
+                    <Clock size={14} className="text-purple-400" /> ساعات العمل والدعم
+                  </label>
+                  <input 
+                    type="text" value={form.contact_hours} 
+                    onChange={e => set('contact_hours', e.target.value)} 
+                    placeholder="مثال: يومياً من 9:00 ص إلى 10:00 م"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 font-bold text-sm text-white/80 outline-none focus:border-purple-500 transition-all shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] flex items-center gap-3 px-2">
+                  <MapPin size={14} className="text-purple-400" /> عنوان المقر الرئيسي
+                </label>
+                <input 
+                  type="text" value={form.contact_address} 
+                  onChange={e => set('contact_address', e.target.value)} 
+                  placeholder="مثال: القاهرة، مصر - شارع التسعين، التجمع الخامس"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 font-bold text-sm text-white/80 outline-none focus:border-purple-500 transition-all shadow-inner"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] flex items-center gap-3 px-2">
+                  <MessageSquare size={14} className="text-purple-400" /> وصف إضافي (اختياري)
+                </label>
+                <textarea 
+                  value={form.contact_us} onChange={e => set('contact_us', e.target.value)} rows={3}
+                  className="w-full bg-white/5 border border-white/10 rounded-3xl py-5 px-6 font-medium text-sm text-white/70 outline-none focus:border-purple-500 transition-all resize-none shadow-inner"
+                  placeholder="أدخل أي ملاحظات إضافية يراها الزائر في صفحة تواصل معنا..."
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-8 border-t border-white/5">
                <div className="space-y-4">
                   <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-2 flex items-center gap-3">
                     <FileText size={16} className="text-purple-500" /> سياسة الخصوصية
