@@ -13,7 +13,7 @@ export const PostService = {
 
     let query = supabase
       .from('posts')
-      .select('id, title, slug, cover_image_url, published_at, created_at, tags, views, profiles(full_name, avatar_url), comments(count), post_reactions(count)', { count: 'exact' })
+      .select('id, title, slug, cover_image_url, published_at, created_at, tags, views, profiles(id, full_name, avatar_url, bio, role, points, created_at), comments(count), post_reactions(count)', { count: 'exact' })
     
     if (status === 'published') {
       // عرض المقالات المنشورة + المقالات المجدولة التي حان وقتها
@@ -65,7 +65,7 @@ export const PostService = {
   async getPostBySlug(slug) {
     return await supabase
       .from('posts')
-      .select('*, profiles(id, full_name, avatar_url, bio)')
+      .select('*, profiles(id, full_name, avatar_url, bio, role, points, created_at)')
       .eq('slug', slug)
       .single()
   },
@@ -225,7 +225,7 @@ export const PostService = {
   async getComments(postId) {
     return await supabase
       .from('comments')
-      .select('*, profiles(full_name, avatar_url, site_settings(channel_slug))')
+      .select('*, profiles(id, full_name, avatar_url, bio, role, points, created_at, site_settings(channel_slug))')
       .eq('post_id', postId)
       .order('created_at', { ascending: false })
   },
@@ -236,7 +236,7 @@ export const PostService = {
     const { data, error } = await supabase
       .from('comments')
       .insert(payload)
-      .select('*, profiles(full_name, avatar_url, site_settings(channel_slug))')
+      .select('*, profiles(id, full_name, avatar_url, bio, role, points, created_at, site_settings(channel_slug))')
       .single()
     if (error) throw error
     return data

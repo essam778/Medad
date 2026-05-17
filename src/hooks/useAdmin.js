@@ -8,8 +8,7 @@ export function useAdminUsers({ page = 0, search = '', role = '' } = {}) {
     queryKey: ['admin', 'users', page, search, role],
     queryFn: async () => {
       let query = supabase
-        .from('profiles')
-        .select('*', { count: 'exact' })
+        .rpc('get_profiles_with_email', {}, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 

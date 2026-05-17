@@ -51,3 +51,45 @@ DROP POLICY IF EXISTS "profiles_delete_policy" ON public.profiles;
 CREATE POLICY "profiles_delete_policy" ON public.profiles
 FOR DELETE TO authenticated
 USING (public.is_admin());
+
+-- =============================================
+-- RPC Function: get_profiles_with_email
+-- =============================================
+-- جلب البروفايلات مع البريد الإلكتروني للمشرفين فقط لأغراض الإدارة
+CREATE OR REPLACE FUNCTION public.get_profiles_with_email()
+RETURNS TABLE (
+  id UUID,
+  full_name TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  role TEXT,
+  points INTEGER,
+  is_banned BOOLEAN,
+  email TEXT,
+  created_at TIMESTAMPTZ
+) 
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- التحقق من أن المستخدم الحالي هو مسؤول (Admin)
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'غير مصرح لك بالوصول إلى هذه البيانات.';
+  END IF;
+
+  RETURN QUERY
+  SELECT 
+    p.id,
+    p.full_name,
+    p.avatar_url,
+    p.bio,
+    p.role,
+    p.points,
+    p.is_banned,
+    p.email,
+    p.created_at
+  FROM public.profiles p;
+END;
+$$ LANGUAGE plpgsql;
+
+-- منح صلاحية تنفيذ الدالة للمستخدمين المسجلين
+GRANT EXECUTE ON FUNCTION public.get_profiles_with_email() TO authenticated;

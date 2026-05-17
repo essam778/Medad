@@ -25,7 +25,7 @@ export default function WritersList() {
       const authorIds = channels.map(c => c.author_id).filter(Boolean)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles_public')
-        .select('id, full_name, avatar_url, bio')
+        .select('id, full_name, avatar_url, bio, role, points, created_at')
         .in('id', authorIds)
       
       if (profilesError) throw profilesError

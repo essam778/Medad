@@ -37,7 +37,7 @@ export default function AdminNotifications() {
   }, [])
 
   async function fetchUsers() {
-    const { data } = await supabase.from('profiles').select('id, full_name, email, role').order('full_name')
+    const { data } = await supabase.rpc('get_profiles_with_email').order('full_name')
     setUsers(data || [])
   }
 

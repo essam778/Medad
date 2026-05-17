@@ -10,7 +10,7 @@ export const ProfileService = {
   async getProfile(id) {
     return await supabase
       .from('profiles')
-      .select('*, site_settings(channel_slug, site_name)')
+      .select('id, full_name, avatar_url, bio, role, points, is_banned, created_at, site_settings(channel_slug, site_name)')
       .eq('id', id)
       .maybeSingle()
   },
@@ -18,7 +18,7 @@ export const ProfileService = {
   async getPublicProfile(id) {
     return await supabase
       .from('profiles_public')
-      .select('*, site_settings(channel_slug, site_name)')
+      .select('id, full_name, avatar_url, bio, role, points, created_at, site_settings(channel_slug, site_name)')
       .eq('id', id)
       .maybeSingle()
   },
@@ -73,23 +73,35 @@ export const ProfileService = {
   },
 
   async getPendingCreatorRequests() {
-    return await supabase
+    // 1. Fetch pending requests
+    const { data: requests, error: requestsError } = await supabase
       .from('creator_requests')
-      .select(`
-        id,
-        user_id,
-        status,
-        message,
-        created_at,
-        profiles (
-          full_name,
-          avatar_url,
-          role,
-          email
-        )
-      `)
+      .select('id, user_id, status, message, created_at')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
+    
+    if (requestsError) return { data: null, error: requestsError }
+    if (!requests || requests.length === 0) return { data: [], error: null }
+
+    // 2. Fetch profiles using RPC
+    const userIds = requests.map(r => r.user_id)
+    const { data: profiles, error: profilesError } = await supabase
+      .rpc('get_profiles_with_email')
+      .in('id', userIds)
+
+    if (profilesError) return { data: null, error: profilesError }
+
+    const profileMap = (profiles || []).reduce((acc, p) => {
+      acc[p.id] = p
+      return acc
+    }, {})
+
+    const merged = requests.map(r => ({
+      ...r,
+      profiles: profileMap[r.user_id] || null
+    }))
+
+    return { data: merged, error: null }
   },
 
   async approveCreatorRequest(requestId, userId) {
