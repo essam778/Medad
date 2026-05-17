@@ -23,11 +23,12 @@ export function AuthProvider({ children }) {
       }
       
       if (!data) {
-        return await ProfileService.createProfile({
+        const { data: newProfile } = await ProfileService.createProfile({
           id: userId,
           email: currentUser?.email,
           role: 'reader'
         })
+        return newProfile
       }
       return data
     } catch (err) {

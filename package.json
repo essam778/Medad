@@ -6,8 +6,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "postinstall": "chmod +x node_modules/.bin/* || true"
+    "test:health": "node scripts/test-health.js",
+    "postinstall": "chmod +x node_modules/.bin/* || true",
+    "prepare": "husky"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.3",
@@ -41,10 +46,28 @@
     "@playwright/test": "^1.59.1",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.10",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/coverage-v8": "^4.1.6",
     "autoprefixer": "^10.4.0",
+    "happy-dom": "^20.9.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.5",
+    "msw": "^2.14.6",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "vitest": "^4.1.6"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix --no-error-on-unmatched-pattern || true"
+    ],
+    "*": [
+      "prettier --write --ignore-unknown --no-error-on-unmatched-pattern 2>/dev/null || true"
+    ]
   }
 }

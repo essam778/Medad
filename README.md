@@ -25,5 +25,37 @@
 
 ---
 
+[![CI](https://github.com/anomalyco/blog-cms/actions/workflows/ci.yml/badge.svg)](https://github.com/anomalyco/blog-cms/actions/workflows/ci.yml)
+
+---
+
+## Database Backup
+
+A GitHub Actions workflow backs up the Supabase database daily (02:00 UTC) and pushes it to a **separate private repository**.
+
+### Setup
+
+1. **Create a private backup repo** on GitHub (e.g. `blog-cms-backups`).
+
+2. **Add these 3 secrets** in your repo → Settings → Secrets and variables → Actions:
+
+   | Secret | Value |
+   |--------|-------|
+   | `DATABASE_URL` | Supabase direct connection string (Project Settings → Database → Connection string → URI) |
+   | `BACKUP_REPO_TOKEN` | GitHub Personal Access Token with `repo` scope (GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens) |
+   | `BACKUP_REPO_URL` | The private repo URL path, e.g. `github.com/YOUR_USERNAME/blog-cms-backups` (without `https://` prefix) |
+
+3. **Run manually** from the Actions tab — select **Database Backup** → **Run workflow**.
+
+### Local backup
+
+```bash
+DATABASE_URL='postgresql://...' BACKUP_REPO_URL='org/repo' ./scripts/backup-db.sh
+```
+
+The script dumps, compresses, and commits to the backup repo automatically. Requires `pg_dump` (install via `postgresql-client`).
+
+---
+
 ## 📜 الترخيص
 حقوق الطبع والنشر محفوظة لمنصة مداد © 2026.

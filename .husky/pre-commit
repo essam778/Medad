@@ -1,0 +1,2 @@
+npx lint-staged
+npx vitest run --project unit --reporter=verbose 2>/dev/null || npx vitest run --reporter=verbose src/ --exclude src/__tests__/integration/

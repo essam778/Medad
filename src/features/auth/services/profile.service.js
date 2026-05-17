@@ -1,6 +1,14 @@
 import { supabase } from '@/lib/supabase'
 
 export const ProfileService = {
+  async createProfile(profileData) {
+    return await supabase
+      .from('profiles')
+      .insert(profileData)
+      .select()
+      .single()
+  },
+
   async getUserStats(userId) {
     const { count: commentCount } = await supabase.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', userId)
     const { count: likeCount } = await supabase.from('post_likes').select('*', { count: 'exact', head: true }).eq('user_id', userId)
