@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import { AuthService } from '../services/auth.service'
 import { ProfileService } from '../services/profile.service'
+import { supabase } from '@/lib/supabase'
 
 const AuthContext = createContext(null)
 
@@ -102,8 +103,33 @@ export function AuthProvider({ children }) {
       isMounted = false
       clearTimeout(initTimeoutId)
       subscription.unsubscribe()
-    }
   }, [fetchProfileData])
+
+  // الاشتراك في التحديثات الفورية للبروفايل (Real-time Profile updates)
+  useEffect(() => {
+    if (!user?.id) return
+
+    const profileChannel = supabase
+      .channel(`profile-realtime-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Realtime profile update received:', payload.new)
+          setProfile(payload.new)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(profileChannel)
+    }
+  }, [user?.id])
 
   const signIn = useCallback((email, password) => AuthService.signIn(email, password), [])
   const signUp = useCallback((email, password, fullName, role) => AuthService.signUp(email, password, fullName, role), [])

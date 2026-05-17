@@ -50,6 +50,17 @@ export default function UserProfile() {
     return () => { if (progressInterval.current) clearInterval(progressInterval.current) }
   }, [])
 
+  // تتبع ترقية المستخدم الفورية وعرض لوحة التحكم الجديدة له
+  useEffect(() => {
+    if (profile?.role === 'author' && requestSent) {
+      toast.success('🎉 تهانينا! تم قبول طلبك ككاتب في منصة مداد. جاري تحويلك إلى لوحة التحكم الخاصة بك...', { duration: 6000 })
+      const timer = setTimeout(() => {
+        window.location.href = '/dashboard'
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [profile?.role, requestSent, toast])
+
   async function checkExistingRequest() {
     if (!user?.id) return
     try {
