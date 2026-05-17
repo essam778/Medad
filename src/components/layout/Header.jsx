@@ -233,28 +233,34 @@ export default function Header() {
 
       {/* Search Overlay (CSS Transition) */}
       <div 
-        className={`fixed inset-0 bg-[#050505]/98 z-[200] transition-opacity duration-300 ${searchOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-black/45 backdrop-blur-[30px] z-[200] transition-all duration-500 ${searchOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
-        <div className="max-w-4xl mx-auto pt-20 px-6">
-          <div className="flex items-center justify-between mb-12">
-            <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter text-right">البحث الذكي</h2>
+        <div className="max-w-4xl mx-auto pt-28 px-6">
+          <div className="flex items-center justify-between mb-16">
+            <div className="flex flex-col text-right">
+              <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter">البحث الذكي</h2>
+              <p className="text-white/40 text-xs md:text-sm font-medium mt-2">ابحث عن المقالات، الكتاب، أو المواضيع المفضلة لديك</p>
+            </div>
             <button 
               onClick={() => setSearchOpen(false)} 
               aria-label="إغلاق البحث"
-              className="w-16 h-16 bg-white/5 rounded-[2rem] flex items-center justify-center text-white/40 hover:text-white transition-all border border-white/5"
+              className="w-16 h-16 bg-white/5 rounded-[2rem] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all border border-white/5 shadow-lg active:scale-95"
             >
               <X size={32} />
             </button>
           </div>
           <form onSubmit={handleSearch} className="relative group">
-            <Search className="absolute right-8 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-purple-500 transition-colors" size={32} />
+            {/* Ambient Purple Glow */}
+            <div className="absolute inset-0 bg-purple-600/15 rounded-[3rem] blur-3xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            
+            <Search className="absolute right-8 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-purple-500 transition-colors z-10" size={32} />
             <input 
               type="text" autoFocus placeholder="عن ماذا تبحث اليوم؟"
-              className="w-full bg-white/5 border border-white/10 rounded-[3rem] py-8 md:py-12 pr-24 pl-10 text-2xl md:text-4xl font-black text-white outline-none focus:border-purple-600 transition-all shadow-2xl text-right"
+              className="relative w-full bg-white/5 border border-white/10 rounded-[3rem] py-8 md:py-12 pr-24 pl-10 text-2xl md:text-4xl font-black text-white outline-none focus:border-purple-600/50 focus:bg-black/60 focus:ring-8 focus:ring-purple-600/10 transition-all shadow-2xl text-right z-0"
               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             />
           </form>
-          <div className="mt-12 flex flex-wrap gap-4 justify-end">
+          <div className="mt-14 flex flex-wrap gap-4 justify-end">
              <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] w-full mb-2 text-right">عمليات بحث شائعة:</span>
              {['البرمجة', 'تطوير الذات', 'الذكاء الاصطناعي', 'ريادة الأعمال'].map(t => (
                <button 
@@ -263,7 +269,7 @@ export default function Header() {
                   navigate(`/?tag=${encodeURIComponent(t)}`)
                   closeAllMenus()
                 }}
-                className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm font-black text-white/40 hover:text-purple-400 hover:border-purple-500/50 transition-all"
+                className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm font-black text-white/40 hover:text-purple-400 hover:border-purple-500/50 hover:bg-purple-600/5 transition-all active:scale-95 shadow-md"
                >
                 #{t}
                </button>

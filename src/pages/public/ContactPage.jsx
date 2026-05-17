@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react'
+import { Mail, MapPin, Send, MessageSquare, Loader2, Sparkles, Phone, Globe } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
+import { useSettings } from '../../hooks/useSettings'
 
 export default function ContactPage() {
+  const { data: settings, isLoading } = useSettings()
   const [formData, setFormData] = useState({ name: '', email: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -11,12 +13,20 @@ export default function ContactPage() {
   const handleSubmit = (e) => {
     e.preventDefault()
     setSubmitting(true)
-    // محاكاة إرسال البيانات
+    // Simulate API call
     setTimeout(() => {
       setSubmitting(false)
       setSubmitted(true)
       setFormData({ name: '', email: '', message: '' })
     }, 1500)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <Loader2 className="animate-spin text-purple-600" size={64} />
+      </div>
+    )
   }
 
   return (
@@ -54,7 +64,9 @@ export default function ContactPage() {
                </div>
                <div>
                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">البريد الإلكتروني</p>
-                 <p className="text-lg font-black text-white group-hover:text-purple-400 transition-colors">hello@midad.com</p>
+                 <a href={`mailto:${settings?.support_email || 'hello@midad.com'}`} className="text-lg font-black text-white group-hover:text-purple-400 transition-colors">
+                   {settings?.support_email || 'hello@midad.com'}
+                 </a>
                </div>
             </div>
 
@@ -64,19 +76,35 @@ export default function ContactPage() {
                </div>
                <div>
                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">الدعم الفني</p>
-                 <p className="text-lg font-black text-white group-hover:text-blue-400 transition-colors">support@midad.com</p>
+                 <p className="text-lg font-black text-white group-hover:text-blue-400 transition-colors">
+                   {settings?.support_email ? `دعم ${settings.site_name || 'مداد'}` : 'support@midad.com'}
+                 </p>
                </div>
             </div>
 
-            <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
-               <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform border border-green-500/20 shadow-xl">
-                 <MapPin size={28} />
-               </div>
-               <div>
-                 <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">المقر الرئيسي</p>
-                 <p className="text-lg font-black text-white group-hover:text-green-400 transition-colors">القاهرة، مصر</p>
-               </div>
-            </div>
+            {settings?.contact_us ? (
+              <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-start gap-6 group hover:border-purple-500/30 transition-all">
+                 <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform border border-green-500/20 shadow-xl shrink-0">
+                   <Globe size={28} />
+                 </div>
+                 <div>
+                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-2">معلومات إضافية</p>
+                   <p className="text-sm font-bold text-white/70 leading-relaxed whitespace-pre-wrap">
+                     {settings.contact_us}
+                   </p>
+                 </div>
+              </div>
+            ) : (
+              <div className="bg-[#0d0d0d]/50 backdrop-blur-3xl border border-white/5 p-8 rounded-[3rem] shadow-2xl flex items-center gap-6 group hover:border-purple-500/30 transition-all">
+                 <div className="w-16 h-16 bg-green-600/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform border border-green-500/20 shadow-xl">
+                   <MapPin size={28} />
+                 </div>
+                 <div>
+                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">المقر الرئيسي</p>
+                   <p className="text-lg font-black text-white group-hover:text-green-400 transition-colors">القاهرة، مصر</p>
+                 </div>
+              </div>
+            )}
           </motion.div>
 
           {/* نموذج التواصل */}

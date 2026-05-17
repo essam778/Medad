@@ -5,7 +5,8 @@ import { uploadImage } from '../../lib/supabase'
 import { 
   Save, Upload, Globe, ShieldCheck, FileText, 
   Mail, MessageSquare, Info, Loader2, Check, RefreshCw, Settings,
-  Twitter, Facebook, Instagram, Github, Linkedin, Share2, Sparkles, Zap
+  Twitter, Facebook, Instagram, Github, Linkedin, Share2, Sparkles, Zap,
+  HelpCircle, Trash2, Plus
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useToast } from '../../components/shared/ToastProvider'
@@ -20,7 +21,8 @@ export default function AdminSettings() {
     posts_per_page: 10, comments_enabled: true,
     social_links: { twitter: '', facebook: '', instagram: '', linkedin: '', github: '' },
     support_email: '', privacy_policy: '', terms_of_service: '',
-    about_us: '', contact_us: ''
+    about_us: '', contact_us: '',
+    faq: []
   })
   const [uploading, setUploading] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -28,6 +30,19 @@ export default function AdminSettings() {
 
   useEffect(() => {
     if (settings) {
+      // Helper to safely parse FAQ array
+      let parsedFaq = []
+      if (Array.isArray(settings.faq)) {
+        parsedFaq = settings.faq
+      } else if (settings.faq && typeof settings.faq === 'string') {
+        try {
+          const parsed = JSON.parse(settings.faq)
+          if (Array.isArray(parsed)) parsedFaq = parsed
+        } catch (e) {
+          parsedFaq = [{ question: "الأسئلة الشائعة", answer: settings.faq, category: "عام" }]
+        }
+      }
+
       setForm({
         site_name: settings.site_name || '',
         site_description: settings.site_description || '',
@@ -45,7 +60,8 @@ export default function AdminSettings() {
         privacy_policy: settings.privacy_policy || '',
         terms_of_service: settings.terms_of_service || '',
         about_us: settings.about_us || '',
-        contact_us: settings.contact_us || ''
+        contact_us: settings.contact_us || '',
+        faq: parsedFaq
       })
     }
   }, [settings])
@@ -87,7 +103,7 @@ export default function AdminSettings() {
                <Settings size={24} className="md:w-8 md:h-8" />
              </div>
           </h1>
-          <p className="text-white/30 mt-4 font-black uppercase tracking-[0.3em] text-[10px]">تخصيص الهوية والروابط الاجتماعية والقانونية للمنصة</p>
+          <p className="text-white/30 mt-4 font-black uppercase tracking-[0.3em] text-[10px]">تخصيص الهوية والروابط الاجتماعية والقانونية والأسئلة الشائعة</p>
         </motion.div>
       </div>
 
@@ -209,6 +225,17 @@ export default function AdminSettings() {
               />
             </div>
 
+            <div className="space-y-4">
+              <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-2 flex items-center gap-3">
+                <MessageSquare size={16} className="text-purple-500" /> معلومات تواصل معنا (Contact Details)
+              </label>
+              <textarea 
+                value={form.contact_us} onChange={e => set('contact_us', e.target.value)} rows={4}
+                className="w-full bg-white/5 border border-white/10 rounded-[2.5rem] py-6 px-8 font-medium text-base text-white/80 outline-none focus:border-purple-500 transition-all resize-none shadow-inner"
+                placeholder="أدخل معلومات الاتصال والمقر الرئيسي وساعات العمل ليتم عرضها في صفحة تواصل معنا..."
+              />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                <div className="space-y-4">
                   <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] px-2 flex items-center gap-3">
@@ -232,6 +259,120 @@ export default function AdminSettings() {
           </div>
         </section>
 
+        {/* FAQ Builder Section */}
+        <section className="bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-purple-600/5 rounded-full blur-[100px] pointer-events-none" />
+          
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
+            <div>
+              <h2 className="text-xl md:text-3xl font-black flex items-center gap-4 text-white italic">
+                <HelpCircle className="text-purple-500" size={24} />
+                إدارة الأسئلة الشائعة
+              </h2>
+              <p className="text-white/30 mt-2 font-black uppercase tracking-[0.2em] text-[10px]">إضافة وتعديل الأسئلة الشائعة التي تظهر في الواجهة الرئيسية للمنصة</p>
+            </div>
+            <button 
+              type="button"
+              onClick={() => {
+                setForm(p => ({
+                  ...p,
+                  faq: [...(p.faq || []), { question: '', answer: '', category: 'عام' }]
+                }))
+              }}
+              className="px-6 py-4 bg-purple-600 hover:bg-purple-500 border border-purple-500/20 text-white rounded-2xl text-xs font-black transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-purple-600/10"
+            >
+              <Plus size={16} /> إضافة سؤال جديد
+            </button>
+          </div>
+
+          {(!form.faq || form.faq.length === 0) ? (
+            <div className="text-center py-16 border border-dashed border-white/10 rounded-[2.5rem] bg-white/5">
+              <HelpCircle size={48} className="mx-auto text-white/10 mb-4" />
+              <p className="text-sm font-black text-white/30 uppercase tracking-widest">لا توجد أسئلة شائعة حالياً</p>
+              <button 
+                type="button"
+                onClick={() => {
+                  setForm(p => ({
+                    ...p,
+                    faq: [{ question: 'ما هي منصة مداد؟', answer: '', category: 'عام' }]
+                  }))
+                }}
+                className="mt-4 px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black text-purple-400 hover:text-purple-300 transition-all"
+              >
+                إضافة أول سؤال شائـع
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {form.faq.map((item, index) => (
+                <div key={index} className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-6 relative group/faq-item">
+                  <div className="absolute top-6 left-6 opacity-40 group-hover/faq-item:opacity-100 transition-opacity">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setForm(p => ({
+                          ...p,
+                          faq: p.faq.filter((_, i) => i !== index)
+                        }))
+                      }}
+                      className="p-3 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 rounded-2xl transition-all active:scale-95"
+                      title="حذف السؤال"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-3">
+                      <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] px-2">السؤال</label>
+                      <input 
+                        type="text" required
+                        placeholder="مثال: كيف يمكنني الانضمام إلى كُتاب المنصة؟"
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-6 font-bold text-base text-white outline-none focus:border-purple-500 transition-all"
+                        value={item.question || ''}
+                        onChange={e => {
+                          const updated = [...form.faq]
+                          updated[index].question = e.target.value
+                          setForm(p => ({ ...p, faq: updated }))
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] px-2">القسم</label>
+                      <input 
+                        type="text" placeholder="عام، كاتب، دفع..."
+                        className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-6 font-bold text-base text-white/80 outline-none focus:border-purple-500 transition-all"
+                        value={item.category || ''}
+                        onChange={e => {
+                          const updated = [...form.faq]
+                          updated[index].category = e.target.value
+                          setForm(p => ({ ...p, faq: updated }))
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] px-2">الإجابة</label>
+                    <textarea 
+                      rows={4} required
+                      placeholder="اكتب الإجابة المفصلة هنا..."
+                      className="w-full bg-black/40 border border-white/10 rounded-[2rem] py-5 px-6 font-medium text-sm text-white/70 outline-none focus:border-purple-500 transition-all resize-none shadow-inner"
+                      value={item.answer || ''}
+                      onChange={e => {
+                        const updated = [...form.faq]
+                        updated[index].answer = e.target.value
+                        setForm(p => ({ ...p, faq: updated }))
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Submit Button */}
         <div className="flex gap-6">
           <button 
@@ -246,4 +387,3 @@ export default function AdminSettings() {
     </div>
   )
 }
-

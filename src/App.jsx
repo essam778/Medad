@@ -26,6 +26,7 @@ const RegisterPage = lazy(() => import('./pages/public/RegisterPage'))
 const StaticPage = lazy(() => import('./pages/public/StaticPage'))
 const PublicProfile = lazy(() => import('./pages/public/PublicProfile'))
 const ContactPage = lazy(() => import('./pages/public/ContactPage'))
+const FAQPage = lazy(() => import('./pages/public/FAQPage'))
 
 // Admin & Creator Pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
@@ -91,7 +92,7 @@ export default function App() {
                     <Route path="about" element={<StaticPage slug="about" />} />
                     <Route path="privacy" element={<StaticPage slug="privacy" />} />
                     <Route path="terms" element={<StaticPage slug="terms" />} />
-                    <Route path="faq" element={<StaticPage slug="faq" />} />
+                    <Route path="faq" element={<FAQPage />} />
                     <Route path="cookies" element={<StaticPage slug="cookies" />} />
                     <Route path="contact" element={<ContactPage />} />
                     <Route path="u/:id" element={<PublicProfile />} />
