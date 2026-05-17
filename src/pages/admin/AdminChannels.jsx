@@ -34,12 +34,19 @@ export default function AdminChannels() {
     const channelId = deleteConfirm.channel.id
     setDeleting(channelId)
     try {
-      const { error } = await supabase
+      const { error: deleteError } = await supabase
         .from('site_settings')
         .delete()
         .eq('author_id', authorId)
-      if (error) throw error
-      toast.success('تم حذف القناة بنجاح')
+      if (deleteError) throw deleteError
+
+      const { error: roleError } = await supabase
+        .from('profiles')
+        .update({ role: 'reader', updated_at: new Date().toISOString() })
+        .eq('id', authorId)
+      if (roleError) throw roleError
+
+      toast.success('تم حذف القناة وإرجاع العضو إلى رتبة قارئ بنجاح')
       setDeleteConfirm({ open: false, channel: null })
       // إعادة تحميل القائمة عبر إلغاء صلاحية الكاش
       queryClient.invalidateQueries({ queryKey: ['admin', 'channels'] })
