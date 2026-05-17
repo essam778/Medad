@@ -81,7 +81,7 @@ export default function SavedPosts() {
         
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          className="bg-white/5 border border-white/10 px-8 py-5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl flex items-center gap-6 w-fit"
+          className="bg-white/5 border border-white/10 px-8 py-5 rounded-[2.5rem] shadow-2xl md:backdrop-blur-3xl flex items-center gap-6 w-fit"
         >
           <div className="w-12 h-12 bg-purple-600/20 text-purple-400 rounded-2xl flex items-center justify-center border border-purple-500/20">
             <BookOpen size={24} />
@@ -94,7 +94,7 @@ export default function SavedPosts() {
       </div>
 
       {savedPosts.length === 0 ? (
-        <div className="text-center py-40 bg-[#0d0d0d]/40 backdrop-blur-3xl border border-dashed border-white/10 rounded-[4rem] px-10 shadow-2xl">
+        <div className="text-center py-40 bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-dashed border-white/10 rounded-[4rem] px-10 shadow-2xl">
           <motion.div 
             animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 3 }}
             className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto mb-10 border border-white/5"
@@ -119,7 +119,7 @@ export default function SavedPosts() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: i * 0.1 }}
-                  className="group relative bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-6 md:p-10 hover:border-purple-600/20 hover:shadow-[0_30px_70px_rgba(0,0,0,0.6)] transition-all flex flex-col md:flex-row gap-8 md:gap-12 items-center overflow-hidden"
+                  className="group relative bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/10 rounded-[3rem] p-6 md:p-10 hover:border-purple-600/20 hover:shadow-[0_30px_70px_rgba(0,0,0,0.6)] transition-all flex flex-col md:flex-row gap-8 md:gap-12 items-center overflow-hidden"
                 >
                   <div className="w-full md:w-80 aspect-[16/10] rounded-[2.5rem] overflow-hidden bg-white/5 shrink-0 shadow-2xl group-hover:shadow-purple-600/10 transition-all duration-700 border border-white/5">
                     {post.cover_image_url ? (

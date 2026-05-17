@@ -292,7 +292,7 @@ export default function AdminGroups() {
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6" dir="rtl">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => { setCreateModal(false); setEditModal(null) }}
-              className="absolute inset-0 bg-black/90 backdrop-blur-2xl" />
+              className="absolute inset-0 bg-black/90" />
             <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
               className="bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-lg relative z-10 shadow-2xl">
               <div className="flex justify-between items-center mb-10">
@@ -341,7 +341,7 @@ export default function AdminGroups() {
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6" dir="rtl">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setAddPostModal(null)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-2xl" />
+              className="absolute inset-0 bg-black/90" />
             <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
               className="bg-[#0d0d0d] border border-white/10 rounded-[3rem] p-10 w-full max-w-xl relative z-10 shadow-2xl max-h-[85vh] flex flex-col">
               <div className="flex justify-between items-center mb-10">

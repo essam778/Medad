@@ -101,7 +101,7 @@ export default function AdminAllPosts() {
       </div>
 
       {/* Filters Overlay Card */}
-      <div className="bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] md:rounded-[3.5rem] p-4 md:p-8 mb-12 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/10 rounded-[2.5rem] md:rounded-[3.5rem] p-4 md:p-8 mb-12 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex flex-wrap items-center gap-4">
           <div className="p-3 bg-white/5 text-white/40 rounded-2xl border border-white/10"><Filter size={20} /></div>
           <div className="flex flex-wrap gap-2">
@@ -128,7 +128,7 @@ export default function AdminAllPosts() {
       </div>
 
       {/* Main Table Card */}
-      <div className="bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] md:rounded-[4rem] overflow-hidden shadow-2xl">
+      <div className="bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/10 rounded-[3rem] md:rounded-[4rem] overflow-hidden shadow-2xl">
         {isLoading ? (
           <div className="py-40 flex flex-col items-center gap-6">
             <Loader2 className="animate-spin text-purple-500" size={48} />

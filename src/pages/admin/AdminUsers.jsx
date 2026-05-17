@@ -75,7 +75,7 @@ export default function AdminUsers() {
           <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-purple-500 transition-colors" size={18} />
           <input 
             type="text" placeholder="بحث بالاسم أو البريد..."
-            className="w-full bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/5 rounded-2xl py-4 pr-14 pl-6 outline-none focus:border-purple-600 shadow-xl transition-all font-black text-sm text-white"
+            className="w-full bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/5 rounded-2xl py-4 pr-14 pl-6 outline-none focus:border-purple-600 shadow-xl transition-all font-black text-sm text-white"
             value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setPage(0) }}
           />
         </div>
@@ -90,7 +90,7 @@ export default function AdminUsers() {
          ].map((stat, i) => (
            <motion.div 
              key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
-             className="bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/5 p-8 rounded-[2.5rem] flex items-center gap-6 shadow-2xl group overflow-hidden relative"
+             className="bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/5 p-8 rounded-[2.5rem] flex items-center gap-6 shadow-2xl group overflow-hidden relative"
            >
              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform"><stat.icon size={60} /></div>
              <div className={`w-14 h-14 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center border border-white/5 shadow-xl`}>
@@ -105,7 +105,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 mb-10 bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/5 p-6 rounded-2xl shadow-xl">
+      <div className="flex flex-wrap items-center gap-4 mb-10 bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/5 p-6 rounded-2xl shadow-xl">
         <div className="p-3 bg-white/5 text-white/40 rounded-xl border border-white/5"><Filter size={18} /></div>
         <div className="flex flex-wrap gap-2">
           {[['', 'الكل'], ...ROLES.map(r => [r.value, r.label])].map(([val, lbl]) => (
@@ -122,7 +122,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
         {isLoading ? (
           <div className="py-40 flex flex-col items-center gap-6">
             <Loader2 className="animate-spin text-purple-600" size={48} />

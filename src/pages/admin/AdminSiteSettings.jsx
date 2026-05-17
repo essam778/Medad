@@ -120,7 +120,7 @@ export default function AdminSiteSettings() {
 
       <form onSubmit={handleSubmit} className="space-y-12">
         {/* Branding Section */}
-        <section className="bg-[#0d0d0d]/40 backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
+        <section className="bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/40 md:backdrop-blur-3xl border border-white/10 rounded-[3.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-purple-600/5 rounded-full blur-[100px] pointer-events-none" />
           
           <div className="flex flex-col lg:flex-row items-center gap-12 mb-16">
@@ -224,7 +224,7 @@ export default function AdminSiteSettings() {
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6" dir="rtl">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => { setDeleteModal(false); setDeleteConfirm('') }}
-              className="absolute inset-0 bg-black/90 backdrop-blur-2xl" />
+              className="absolute inset-0 bg-black/90" />
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#0d0d0d] border border-white/10 text-white rounded-[3rem] p-10 w-full max-w-lg relative z-10 shadow-[0_50px_100px_rgba(0,0,0,0.8)]">
               <div className="flex justify-between items-center mb-10">

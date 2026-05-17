@@ -100,7 +100,7 @@ export default function WritersList() {
               >
                 <Link 
                   to={`/c/${writer.channel_slug}`}
-                  className="group relative block bg-[#0d0d0d]/50 backdrop-blur-2xl border border-white/5 rounded-[3rem] p-8 hover:border-purple-500/30 transition-all shadow-2xl overflow-hidden"
+                  className="group relative block bg-[#0d0d0d]/95 md:bg-[#0d0d0d]/50 md:backdrop-blur-2xl border border-white/5 rounded-[3rem] p-8 hover:border-purple-500/30 transition-all shadow-2xl overflow-hidden"
                 >
                   <div className="absolute -top-12 -left-12 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl group-hover:bg-purple-600/20 transition-all" />
                   
