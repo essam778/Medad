@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ألوان مداد الأساسية */
+    --color-ink:        #0d0d0d;
+    --color-ink-soft:   #1a1a1a;
+    --color-gold:       #c8a45a;
+    --color-gold-light: #e2c98a;
+    --color-gold-dark:  #8a6d2d;
+    --color-paper:      #f7f6f1;
+    --color-paper-soft: #f0efe9;
+
+    /* نصوص */
+    --color-text-primary:   #0d0d0d;
+    --color-text-secondary: #3d3d3d;
+    --color-text-muted:     #575757;
+
+    /* حدود */
+    --color-border:         #e0ddd4;
+    --color-border-soft:    #eeece6;
+
+    /* خلفيات */
+    --color-bg:             #f7f6f1;
+    --color-bg-card:        #ffffff;
+    --color-bg-subtle:      #f0efe9;
+
+    /* الخط */
+    --font-arabic: 'Cairo', 'Tajawal', system-ui, sans-serif;
+
+    /* الحواف */
+    --radius-sm:  6px;
+    --radius-md:  10px;
+    --radius-lg:  16px;
+    --radius-xl:  24px;
+  }
+
+  /* الوضع الداكن */
+  .dark {
+    --color-text-primary:   #ffffff;
+    --color-text-secondary: #e5e5e0;
+    --color-text-muted:     #a3a3a3;
+
+    --color-border:         #262626;
+    --color-border-soft:    #1f1f1f;
+
+    --color-bg:             #0a0a0a;
+    --color-bg-card:        #121212;
+    --color-bg-subtle:      #171717;
+    --color-paper:          #121212;
+    --color-paper-soft:     #171717;
+    --color-ink:            #0d0d0d; /* Fixed: Should remain dark */
+    --color-ink-soft:       #1a1a1a;
+  }
+
+  /* وضع السبيا (مريح للعين) */
+  .sepia {
+    --color-text-primary:   #433422;
+    --color-text-secondary: #5f4b32;
+    --color-text-muted:     #8a7052;
+
+    --color-border:         #d3c1a5;
+    --color-border-soft:    #e4d5bc;
+
+    --color-bg:             #f4ecd8;
+    --color-bg-card:        #fcf5e5;
+    --color-bg-subtle:      #efe6cf;
+    --color-paper:          #f4ecd8;
+    --color-paper-soft:     #efe6cf;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 90%; /* صغر حجم الخط في كل الصفحات */
+  }
+
+  body {
+    @apply bg-page text-primary font-arabic antialiased text-[0.95rem] font-medium;
+    direction: rtl;
+  }
+
+  /* TipTap Editor Styles */
+  .ProseMirror {
+    @apply outline-none min-h-[300px];
+  }
+
+  .ProseMirror p {
+    @apply mb-4 leading-relaxed;
+  }
+
+  .ProseMirror h2 {
+    @apply text-2xl font-bold mt-8 mb-4;
+    font-family: Georgia, serif;
+  }
+
+  .ProseMirror h3 {
+    @apply text-xl font-semibold mt-6 mb-3;
+    font-family: Georgia, serif;
+  }
+
+  .ProseMirror ul, .ProseMirror ol {
+    @apply pl-6 mb-4 space-y-1;
+  }
+
+  .ProseMirror ul { list-style: disc; }
+  .ProseMirror ol { list-style: decimal; }
+
+  .ProseMirror blockquote {
+    @apply border-r-4 border-border pr-4 italic text-secondary my-4;
+  }
+
+  .ProseMirror img {
+    @apply rounded-xl max-w-full my-4;
+  }
+
+  .ProseMirror a {
+    @apply text-primary underline;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background-color: var(--color-border); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--color-text-muted); }
+
+  /* Aspect Ratio Utility to fix CLS */
+  .aspect-video-post { aspect-ratio: 16 / 10; }
+  .aspect-video-hero { aspect-ratio: 16 / 9; }
+
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Font smoothing and rendering optimization */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Optimization for fonts */
+@font-face {
+  font-family: 'Cairo';
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Tajawal';
+  font-display: swap;
+}

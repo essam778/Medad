@@ -1,0 +1,68 @@
+# Midad (مداد) — Agent Guide
+
+Arabic blogging platform. React 18 + Vite + Supabase + Zustand + Tailwind.
+
+## Commands
+
+```bash
+npm run dev        # dev server at http://127.0.0.1:5173
+npm run build      # vite build (minify: esbuild, target es2020)
+npm run preview    # preview production build
+npm run test:e2e   # Playwright (tests/e2e/)
+```
+
+## Required env vars
+
+Create `.env.local` from `.env` template (never commit — tracked keys already leaked):
+
+```
+VITE_SUPABASE_URL=https://<project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon_key>
+VITE_GEMINI_API_KEY=<key>              # used client-side (builds into bundle)
+VITE_SENTRY_DSN=                       # optional
+VITE_SENTRY_TRACES_SAMPLE_RATE=0.2     # optional
+```
+
+## Architecture
+
+- **No backend API** — browser talks directly to Supabase via anon key. All auth is RLS-dependent.
+- **Feature-based** structure under `src/features/{auth,posts}/`, each with `{components,services,hooks}`.
+- **Pages** in `src/pages/{public,admin,dashboard}/`, loaded via `React.lazy`.
+- **State**: Zustand stores (`src/stores/`) for UI/notifications/settings; React Query (`@tanstack/react-query`) for server state.
+- **Routing**: React Router v6 with future flags (`v7_startTransition`, `v7_relativeSplatPath`). Studio route at `/studio/*` (old `/admin/*` redirects).
+- **Auth**: Supabase PKCE flow, session in localStorage (`sb-auth-token`). `ProtectedRoute` component wraps `/studio` — **client-side only**, real auth depends on RLS.
+- **Editor**: Tiptap with CharacterCount, Image, Link, YouTube extensions. DOMPurify sanitizes on save.
+- **Vercel** deployment: full CSP + security headers in `vercel.json`. SPA rewrite to `index.html`. `www` redirects to apex. Android via Capacitor.
+- **Supabase Edge Function**: `youtube-summarize` — unauthenticated CORS `*`, uses server-side `GEMINI_API_KEY`.
+
+## Critical issues (must-fix before production)
+
+1. **No RLS on core tables**: `posts`, `comments`, `post_reactions`, `saved_posts`, `tags`, `invite_codes`, `creator_requests`, `settings`, `post_views` all have **no RLS policies**. Any authenticated user can read/write/delete anything. RLS is only configured for: `notifications`, `collections`, `collection_posts`, `site_settings`, `follows`, `push_subscriptions`, `profiles` (delete only).
+2. **Gemini API key in client bundle**: `VITE_GEMINI_API_KEY` gets bundled into every page — anyone can extract and abuse it.
+3. **Edge function has no auth**: `supabase/functions/youtube-summarize/index.ts` sets `Access-Control-Allow-Origin: *` with no JWT check — anyone can call it and consume your Gemini quota.
+4. **corsproxy.io for YouTube scraping**: `PostEditor.jsx` sends video IDs through a third-party proxy. `youtube-summarize` edge function spoofs YouTube consent cookies.
+5. **Admin features in localStorage** (`AdminDashboard.jsx`): hero/trending post IDs stored client-side only, not in DB.
+6. **Error messages leak internals**: toasts pass `err.message` directly (Supabase errors expose table names, column details).
+
+## Style conventions
+
+- Arabic-first UI: `dir="rtl"`, `lang="ar"`, `Intl.DateTimeFormat('ar-EG')` throughout.
+- Dark mode via `darkMode: 'class'` on `<html>`. CSS custom properties for theming.
+- Component exports use default. Hooks use named exports. Services are objects not classes.
+- File names: `PascalCase.jsx` for components, `camelCase.js` for services/hooks/stores.
+- Path aliases: `@/` → `src/`, `@features/` → `src/features/`, `@auth/`, `@posts/`.
+
+## Testing
+
+- Single smoke test (`tests/e2e/smoke.spec.js`): checks homepage + login render.
+- Playwright auto-starts dev server. `baseURL` defaults to `http://127.0.0.1:5173`.
+- No unit tests, no Vitest config.
+
+## SQL migrations
+
+Run manually via Supabase Dashboard SQL Editor. Order:
+1. `supabase/full_upgrade.sql` (notifications, analytics views, triggers)
+2. `supabase/full_features_upgrade.sql` (collections, follows, site_settings, RLS fixes)
+3. `supabase/notifications_rls_fix.sql` (patch for notification insert policy)
+
+`schema.sql` is empty — all schema is in the upgrade files.
