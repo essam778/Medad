@@ -253,3 +253,4 @@ npm run test:coverage # with coverage report (thresholds: 80%)
 npm run test:watch    # watch mode
 npm run test:e2e      # Playwright E2E smoke test
 ```
+

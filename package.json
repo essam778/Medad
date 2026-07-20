@@ -11,7 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:health": "node scripts/test-health.js",
-    "postinstall": "chmod +x node_modules/.bin/* || true",
+    "postinstall": "node -e \"if (process.platform !== 'win32') { try { require('child_process').execSync('chmod +x node_modules/.bin/*'); } catch(e) {} }\"",
     "prepare": "husky"
   },
   "dependencies": {

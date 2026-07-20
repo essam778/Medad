@@ -6,6 +6,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { HelmetProvider } from 'react-helmet-async'
 import { queryClient } from '@/lib/queryClient'
 import LoadingSpinner from './components/shared/LoadingSpinner'
+import ErrorBoundary from './components/shared/ErrorBoundary'
 import { ThemeProvider } from './context/ThemeContext'
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
@@ -76,8 +77,9 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           <HelmetProvider>
             <AuthProvider>
-              <Suspense fallback={appFallback}>
-                <Routes>
+              <ErrorBoundary>
+                <Suspense fallback={appFallback}>
+                  <Routes>
                   {/* Public Routes with MainLayout */}
                   <Route path="/" element={<MainLayout />}>
                     <Route index element={<HomePage />} />
@@ -129,6 +131,7 @@ export default function App() {
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
+              </ErrorBoundary>
             </AuthProvider>
           </HelmetProvider>
         </QueryClientProvider>

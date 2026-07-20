@@ -23,23 +23,28 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
-  
-  // Ignore chrome-extension or other non-http schemes
+
   if (!event.request.url.startsWith('http')) return
 
+  // For navigation requests, serve index.html as fallback (SPA pattern)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    )
+    return
+  }
+
+  // For static assets (JS, CSS, images, fonts), use cache-first strategy
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response
-          }
+      return fetch(event.request).then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
           const copy = response.clone()
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
-          return response
-        })
-        .catch(() => caches.match('/index.html'))
+        }
+        return response
+      })
     })
   )
 })
