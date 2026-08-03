@@ -28,14 +28,14 @@ ALTER TABLE public.posts
     OR cover_image_url ~* '^https?://.+'
   );
 
--- 3. إضافة قيد لجدول site_settings (حقل channel_avatar)
+-- 3. إضافة قيد لجدول site_settings (حقل logo_url)
 ALTER TABLE public.site_settings 
-  DROP CONSTRAINT IF EXISTS valid_channel_avatar;
+  DROP CONSTRAINT IF EXISTS valid_logo_url;
 
 ALTER TABLE public.site_settings 
-  ADD CONSTRAINT valid_channel_avatar 
+  ADD CONSTRAINT valid_logo_url 
   CHECK (
-    channel_avatar IS NULL 
-    OR channel_avatar = '' 
-    OR channel_avatar ~* '^https?://.+'
+    logo_url IS NULL 
+    OR logo_url = '' 
+    OR logo_url ~* '^https?://.+'
   );
