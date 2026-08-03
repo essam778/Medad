@@ -281,3 +281,66 @@ CREATE POLICY "tags_read_all" ON tags FOR SELECT USING (true);
 CREATE POLICY "tags_insert" ON tags FOR INSERT WITH CHECK (is_admin());
 CREATE POLICY "tags_update" ON tags FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "tags_delete" ON tags FOR DELETE USING (is_admin());
+
+-- =============================================
+-- Missing Tables and Policies (Consolidated)
+-- =============================================
+
+-- INVITE_CODES
+CREATE TABLE IF NOT EXISTS public.invite_codes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  code text NOT NULL UNIQUE,
+  is_used boolean DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  CONSTRAINT invite_codes_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE invite_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin_manage_invite_codes" ON invite_codes FOR ALL USING (is_admin());
+CREATE POLICY "public_read_invite_codes" ON invite_codes FOR SELECT USING (true);
+CREATE POLICY "public_update_invite_codes" ON invite_codes FOR UPDATE USING (is_used = false) WITH CHECK (is_used = true);
+
+-- SETTINGS
+CREATE TABLE IF NOT EXISTS public.settings (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  key text NOT NULL UNIQUE,
+  value jsonb NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT settings_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "settings_read" ON settings FOR SELECT USING (true);
+CREATE POLICY "settings_update" ON settings FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+
+-- SLUG_REDIRECTS
+CREATE TABLE IF NOT EXISTS public.slug_redirects (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  old_slug text NOT NULL UNIQUE,
+  new_slug text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  CONSTRAINT slug_redirects_pkey PRIMARY KEY (id)
+);
+
+ALTER TABLE slug_redirects ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "redirects_read" ON slug_redirects FOR SELECT USING (true);
+CREATE POLICY "redirects_manage" ON slug_redirects FOR ALL USING (is_admin());
+
+-- COMMENT_REACTIONS
+CREATE TABLE IF NOT EXISTS public.comment_reactions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  comment_id uuid,
+  user_id uuid,
+  type text CHECK (type = ANY (ARRAY['like','love','haha','sad','angry'])),
+  created_at timestamptz DEFAULT now(),
+  CONSTRAINT comment_reactions_pkey PRIMARY KEY (id),
+  CONSTRAINT comment_reactions_comment_id_fkey FOREIGN KEY (comment_id) REFERENCES public.comments(id),
+  CONSTRAINT comment_reactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+
+ALTER TABLE comment_reactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public select comment_reactions" ON comment_reactions FOR SELECT USING (true);
+CREATE POLICY "Allow individual insert comment_reactions" ON comment_reactions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Allow individual delete comment_reactions" ON comment_reactions FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "reactions_update_own comment_reactions" ON comment_reactions FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);

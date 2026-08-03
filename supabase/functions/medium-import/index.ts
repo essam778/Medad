@@ -101,12 +101,13 @@ serve(async (req) => {
 
     const apiKey = Deno.env.get("GEMINI_API_KEY");
 
-    const htmlRes = await fetch(url, {
+    // Use freedium.cfd to bypass Medium's anti-bot protection
+    const proxyUrl = "https://freedium.cfd/" + url;
+
+    const htmlRes = await fetch(proxyUrl, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
-        "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
-        Cookie: "CONSENT=YES+cb.20210328-17-p0.en+FX+412",
       },
     });
     const html = await htmlRes.text();

@@ -23,6 +23,7 @@ import {
   Youtube,
   Wand2,
   FileText,
+  Search,
 } from "lucide-react";
 import { useToast } from "../../components/shared/ToastProvider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -75,6 +76,11 @@ export default function PostEditor() {
   const [mediumModal, setMediumModal] = useState(false);
   const [mediumUrl, setMediumUrl] = useState("");
   const [isImporting, setIsImporting] = useState(false);
+
+  const [unsplashModal, setUnsplashModal] = useState(false);
+  const [unsplashQuery, setUnsplashQuery] = useState("");
+  const [unsplashResults, setUnsplashResults] = useState([]);
+  const [isSearchingUnsplash, setIsSearchingUnsplash] = useState(false);
 
   useEffect(() => {
     async function fetchTags() {
@@ -156,9 +162,43 @@ export default function PostEditor() {
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
-      setUploading(false);
+      setIsImporting(false);
     }
   }
+
+  async function handleUnsplashSearch(e) {
+    e.preventDefault();
+    if (!unsplashQuery.trim()) return;
+    setIsSearchingUnsplash(true);
+    try {
+      // Trying to fetch from Unsplash API using Vite env variable
+      const accessKey = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
+      if (!accessKey) {
+        throw new Error(
+          "لم يتم تكوين مفتاح Unsplash (VITE_UNSPLASH_ACCESS_KEY) في إعدادات البيئة.",
+        );
+      }
+      const res = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12&client_id=${accessKey}`,
+      );
+      if (!res.ok) throw new Error("فشل البحث في Unsplash");
+      const data = await res.json();
+      setUnsplashResults(data.results || []);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "حدث خطأ أثناء البحث"));
+    } finally {
+      setIsSearchingUnsplash(false);
+    }
+  }
+
+  const handlePublish = async () => {
+    const title = "";
+    setForm((prev) => ({
+      ...prev,
+      title,
+      slug: id ? prev.slug : generateSlug(title),
+    }));
+  };
 
   function handleTitleChange(e) {
     const title = e.target.value;
@@ -261,8 +301,10 @@ export default function PostEditor() {
       setNotice({
         open: true,
         title: "فشل السحب الذكي",
-        message:
-          err.message || "تعذر جلب النص. جرب فيديو آخر أو انسخ النص يدوياً.",
+        message: getErrorMessage(
+          err,
+          "تعذر جلب النص. جرب فيديو آخر أو انسخ النص يدوياً.",
+        ),
         variant: "warning",
       });
     } finally {
@@ -299,8 +341,10 @@ export default function PostEditor() {
       setNotice({
         open: true,
         title: "فشل الاستيراد من Medium",
-        message:
-          err.message || "تعذر استيراد المقال. تحقق من الرابط وحاول مرة أخرى.",
+        message: getErrorMessage(
+          err,
+          "تعذر استيراد المقال. تحقق من الرابط وحاول مرة أخرى.",
+        ),
         variant: "warning",
       });
     } finally {
@@ -345,7 +389,7 @@ export default function PostEditor() {
             "increment_user_points",
             {
               user_id: user.id,
-              points_to_add: 10,
+              points_to_add: 3,
             },
           );
 
@@ -360,7 +404,7 @@ export default function PostEditor() {
               .select("points")
               .eq("id", user.id)
               .single();
-            const nextPoints = (pData?.points || 0) + 10;
+            const nextPoints = (pData?.points || 0) + 3;
             await supabase
               .from("profiles")
               .update({ points: nextPoints })
@@ -511,15 +555,27 @@ export default function PostEditor() {
                 <span className="text-xs font-black text-white/40">
                   اضغط لرفع الغلاف
                 </span>
+                <span className="text-[10px] text-white/20 mt-1">
+                  (الحد الأقصى 2 ميجابايت)
+                </span>
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
                   onChange={handleCoverUpload}
-                  disabled={uploading}
                 />
               </label>
             )}
+
+            {!form.cover_image_url &&
+              import.meta.env.VITE_UNSPLASH_ACCESS_KEY && (
+                <button
+                  onClick={() => setUnsplashModal(true)}
+                  className="w-full mt-4 bg-white/5 border border-white/10 rounded-xl py-3 text-xs font-black text-white/40 hover:text-white hover:border-purple-500/50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Search size={14} /> البحث في مكتبة Unsplash
+                </button>
+              )}
           </section>
 
           <section className="space-y-4">
@@ -741,6 +797,87 @@ export default function PostEditor() {
                   )}
                   {isImporting ? "جارٍ الاستيراد..." : "استيراد المقال"}
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {unsplashModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setUnsplashModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-[#0d0d0d] border border-white/10 rounded-[2rem] p-8 max-w-2xl w-full relative z-10 shadow-2xl max-h-[80vh] flex flex-col"
+            >
+              <h2 className="text-xl font-black mb-6 flex items-center justify-between shrink-0">
+                مكتبة الصور (Unsplash)
+                <button onClick={() => setUnsplashModal(false)}>
+                  <X size={20} />
+                </button>
+              </h2>
+              <form
+                onSubmit={handleUnsplashSearch}
+                className="flex gap-4 mb-6 shrink-0"
+              >
+                <input
+                  value={unsplashQuery}
+                  onChange={(e) => setUnsplashQuery(e.target.value)}
+                  placeholder="ابحث عن صور (باللغة الإنجليزية)..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-white text-sm"
+                  dir="ltr"
+                />
+                <button
+                  type="submit"
+                  disabled={isSearchingUnsplash || !unsplashQuery.trim()}
+                  className="bg-purple-600 text-white px-8 rounded-xl font-black flex items-center justify-center gap-3 hover:bg-purple-500 disabled:opacity-50"
+                >
+                  {isSearchingUnsplash ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    <Search size={20} />
+                  )}
+                </button>
+              </form>
+
+              <div className="flex-1 overflow-y-auto no-scrollbar min-h-[300px]">
+                {unsplashResults.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {unsplashResults.map((img) => (
+                      <button
+                        key={img.id}
+                        onClick={() => {
+                          set("cover_image_url", img.urls.regular);
+                          setUnsplashModal(false);
+                        }}
+                        className="relative aspect-video rounded-xl overflow-hidden group border border-white/5 hover:border-purple-500/50 transition-all"
+                      >
+                        <img
+                          src={img.urls.small}
+                          alt={img.alt_description}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-white/20">
+                    <ImageIcon size={48} className="mb-4 opacity-20" />
+                    <p className="text-sm font-black italic uppercase tracking-widest">
+                      ابحث عن صور عالية الجودة
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

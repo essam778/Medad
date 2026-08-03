@@ -1,49 +1,53 @@
-import { useState, useEffect } from 'react'
-import { Bell, CheckCheck, Trash2, Loader2, Info } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@auth'
-import { supabase } from '../../lib/supabase'
-import { useQueryClient } from '@tanstack/react-query'
-import { markAllNotificationsRead, markNotificationRead, useNotifications } from '../../hooks/useNotifications'
-import ConfirmModal from './ConfirmModal'
+import { useState, useEffect } from "react";
+import { Bell, CheckCheck, Trash2, Loader2, Info } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@auth";
+import { supabase } from "../../lib/supabase";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  markAllNotificationsRead,
+  markNotificationRead,
+  useNotifications,
+} from "../../hooks/useNotifications";
+import ConfirmModal from "./ConfirmModal";
 
-import { useUIStore } from '../../stores/ui.store'
-import { useNotificationStore } from '../../stores/notification.store'
+import { useUIStore } from "../../stores/ui.store";
+import { useNotificationStore } from "../../stores/notification.store";
 
-export default function NotificationCenter({ className = '' }) {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const { notifications, unreadCount } = useNotifications()
-  const queryClient = useQueryClient()
-  const [clearing, setClearing] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
-  
-  const isOpen = useUIStore((s) => s.modals.notifications)
-  const setOpen = (val) => val ? useUIStore.getState().openModal('notifications') : useUIStore.getState().closeModal('notifications')
-  
-  const markAllAsReadOptimistic = useNotificationStore((s) => s.markAllAsRead)
+export default function NotificationCenter({ className = "" }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { notifications, unreadCount } = useNotifications();
+  const queryClient = useQueryClient();
+  const [clearing, setClearing] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  const isOpen = useUIStore((s) => s.modals.notifications);
+  const setOpen = (val) =>
+    val
+      ? useUIStore.getState().openModal("notifications")
+      : useUIStore.getState().closeModal("notifications");
+
+  const markAllAsReadOptimistic = useNotificationStore((s) => s.markAllAsRead);
 
   const handleClearAll = async () => {
-    if (!user?.id || clearing) return
-    
-    setClearing(true)
-    try {
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('recipient_id', user.id)
-      
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      setDeleteConfirm(false)
-    } catch (error) {
-      console.error('Error clearing notifications:', error)
-    } finally {
-      setClearing(false)
-    }
-  }
+    if (!user?.id || clearing) return;
 
-  if (!user) return null
+    setClearing(true);
+    try {
+      await supabase.from("notifications").delete().eq("recipient_id", user.id);
+
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      setDeleteConfirm(false);
+    } catch (error) {
+      console.error("Error clearing notifications:", error);
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  if (!user) return null;
 
   return (
     <div className={`relative ${className}`} dir="rtl">
@@ -60,16 +64,24 @@ export default function NotificationCenter({ className = '' }) {
 
       <button
         type="button"
-        onClick={() => setOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) {
+            markAllAsReadOptimistic();
+            markAllNotificationsRead(user.id);
+          }
+          setOpen(!isOpen);
+        }}
         aria-label="التنبيهات"
         className={`p-2.5 rounded-xl transition-all relative group ${
-          isOpen ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'text-white/40 hover:text-white hover:bg-white/5'
+          isOpen
+            ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20"
+            : "text-white/40 hover:text-white hover:bg-white/5"
         }`}
       >
         <Bell size={20} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -left-1 w-5 h-5 bg-purple-600 text-white text-[10px] font-black rounded-lg flex items-center justify-center shadow-lg border-2 border-[#050505]">
-            {unreadCount > 9 ? '+9' : unreadCount}
+            {unreadCount > 9 ? "+9" : unreadCount}
           </span>
         )}
       </button>
@@ -77,7 +89,10 @@ export default function NotificationCenter({ className = '' }) {
       <AnimatePresence>
         {isOpen && (
           <>
-            <div className="fixed inset-0 z-[120]" onClick={() => setOpen(false)} />
+            <div
+              className="fixed inset-0 z-[120]"
+              onClick={() => setOpen(false)}
+            />
             <motion.div
               initial={{ opacity: 0, y: 12, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -87,11 +102,17 @@ export default function NotificationCenter({ className = '' }) {
               {/* Header */}
               <div className="px-6 py-5 bg-white/5 border-b border-white/5 flex items-center justify-between">
                 <h4 className="text-sm font-black text-white flex items-center gap-2">
-                   إشعاراتك <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 text-[10px] rounded-lg border border-purple-500/20">{notifications.length}</span>
+                  إشعاراتك{" "}
+                  <span className="px-2 py-0.5 bg-purple-600/20 text-purple-400 text-[10px] rounded-lg border border-purple-500/20">
+                    {notifications.length}
+                  </span>
                 </h4>
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => { markAllAsReadOptimistic(); markAllNotificationsRead(user.id); }}
+                    onClick={() => {
+                      markAllAsReadOptimistic();
+                      markAllNotificationsRead(user.id);
+                    }}
                     className="text-[10px] font-black text-white/30 hover:text-purple-400 transition-colors"
                   >
                     تحديد الكل كمقروء
@@ -101,7 +122,11 @@ export default function NotificationCenter({ className = '' }) {
                     disabled={clearing}
                     className="text-[10px] font-black text-white/30 hover:text-red-400 transition-colors flex items-center gap-1"
                   >
-                    {clearing ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
+                    {clearing ? (
+                      <Loader2 size={10} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={10} />
+                    )}
                     حذف الكل
                   </button>
                 </div>
@@ -114,7 +139,9 @@ export default function NotificationCenter({ className = '' }) {
                     <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
                       <Bell size={24} className="text-white/10" />
                     </div>
-                    <p className="text-sm font-black text-white/20 italic tracking-widest uppercase">لا توجد إشعارات جديدة</p>
+                    <p className="text-sm font-black text-white/20 italic tracking-widest uppercase">
+                      لا توجد إشعارات جديدة
+                    </p>
                   </div>
                 ) : (
                   notifications.map((n, i) => (
@@ -123,28 +150,48 @@ export default function NotificationCenter({ className = '' }) {
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
-                        onClick={() => {
-                          if (!n.read) markNotificationRead(n.id)
-                          if (n.metadata?.slug) navigate(`/post/${n.metadata.slug}`)
-                          setOpen(false)
-                        }}
+                      onClick={() => {
+                        if (!n.read) markNotificationRead(n.id);
+                        if (n.type === "new_follow" && n.metadata?.author_id) {
+                          navigate(`/author/${n.metadata.author_id}`);
+                        } else if (n.metadata?.slug) {
+                          navigate(`/post/${n.metadata.slug}`);
+                        }
+                        setOpen(false);
+                      }}
                       className={`p-4 rounded-2xl border transition-all cursor-pointer relative group ${
-                        n.read ? 'bg-transparent border-white/5 opacity-60' : 'bg-purple-600/5 border-purple-500/20 shadow-lg'
+                        n.read
+                          ? "bg-transparent border-white/5 opacity-60"
+                          : "bg-purple-600/5 border-purple-500/20 shadow-lg"
                       }`}
                     >
                       <div className="flex gap-4">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                          n.read ? 'bg-white/5 border-white/10 text-white/20' : 'bg-purple-600/20 border-purple-500/20 text-purple-400'
-                        }`}>
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                            n.read
+                              ? "bg-white/5 border-white/10 text-white/20"
+                              : "bg-purple-600/20 border-purple-500/20 text-purple-400"
+                          }`}
+                        >
                           <Info size={18} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className={`text-xs font-black mb-1 italic ${n.read ? 'text-white/40' : 'text-white'}`}>{n.title}</p>
-                          <p className="text-[10px] text-white/30 line-clamp-2 leading-relaxed italic">{n.message}</p>
-                          <p className="text-[8px] font-black text-white/10 mt-2 uppercase tracking-widest">{new Date(n.created_at).toLocaleDateString('ar-EG')}</p>
+                          <p
+                            className={`text-xs font-black mb-1 italic ${n.read ? "text-white/40" : "text-white"}`}
+                          >
+                            {n.title}
+                          </p>
+                          <p className="text-[10px] text-white/30 line-clamp-2 leading-relaxed italic">
+                            {n.message}
+                          </p>
+                          <p className="text-[8px] font-black text-white/10 mt-2 uppercase tracking-widest">
+                            {new Date(n.created_at).toLocaleDateString("ar-EG")}
+                          </p>
                         </div>
                       </div>
-                      {!n.read && <div className="absolute top-4 left-4 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />}
+                      {!n.read && (
+                        <div className="absolute top-4 left-4 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                      )}
                     </motion.div>
                   ))
                 )}
@@ -154,5 +201,5 @@ export default function NotificationCenter({ className = '' }) {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
