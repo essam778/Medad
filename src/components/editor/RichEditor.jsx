@@ -4,10 +4,17 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
+import TextAlign from '@tiptap/extension-text-align';
+import Underline from '@tiptap/extension-underline';
+import Color from '@tiptap/extension-color';
+import TextStyle from '@tiptap/extension-text-style';
+import Highlight from '@tiptap/extension-highlight';
+
 import { uploadImage } from "../../lib/supabase";
 import {
   Bold,
   Italic,
+  Underline as UnderlineIcon,
   Link as LinkIcon,
   Image as ImageIcon,
   List,
@@ -18,6 +25,12 @@ import {
   Undo,
   Redo,
   Youtube as YTIcon,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Highlighter,
+  Palette
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "../shared/ToastProvider";
@@ -60,6 +73,16 @@ export default function RichEditor({ content = "", onChange }) {
         height: 360,
         HTMLAttributes: { class: "rounded-xl w-full aspect-video" },
       }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
+      }),
+      Underline,
+      TextStyle,
+      Color,
+      Highlight.configure({
+        multicolor: true,
+      }),
     ],
     content,
     onUpdate: ({ editor }) => onChange?.(editor.getHTML()),
@@ -67,7 +90,6 @@ export default function RichEditor({ content = "", onChange }) {
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      // نحدث المحتوى فقط إذا كان مختلفاً (لتجنب مشاكل القفز أثناء الكتابة اليدوية)
       editor.commands.setContent(content, false);
     }
   }, [content, editor]);
@@ -145,26 +167,81 @@ export default function RichEditor({ content = "", onChange }) {
         >
           <Italic size={16} />
         </ToolBtn>
-        {divider}
         <ToolBtn
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          active={editor.isActive("underline")}
+          title="خط أسفل النص (Ctrl+U)"
+        >
+          <UnderlineIcon size={16} />
+        </ToolBtn>
+        
+        {/* Color and Highlight Pickers */}
+        {divider}
+        <div className="relative flex items-center mx-1 group" title="لون النص">
+          <Palette size={16} className="absolute right-1.5 pointer-events-none text-white/60 group-hover:text-white transition-colors" />
+          <input
+            type="color"
+            onInput={event => editor.chain().focus().setColor(event.target.value).run()}
+            value={editor.getAttributes('textStyle').color || '#ffffff'}
+            className="w-7 h-7 opacity-0 cursor-pointer"
+          />
+        </div>
+        <div className="relative flex items-center mx-1 group" title="تمييز النص (Highlight)">
+          <Highlighter size={16} className="absolute right-1.5 pointer-events-none text-white/60 group-hover:text-white transition-colors" />
+          <input
+            type="color"
+            onInput={event => editor.chain().focus().toggleHighlight({ color: event.target.value }).run()}
+            value={editor.getAttributes('highlight').color || '#ffcc00'}
+            className="w-7 h-7 opacity-0 cursor-pointer"
+          />
+        </div>
+        {divider}
+
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           active={editor.isActive("heading", { level: 2 })}
           title="عنوان H2"
         >
           <Heading2 size={16} />
         </ToolBtn>
         <ToolBtn
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 3 }).run()
-          }
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           active={editor.isActive("heading", { level: 3 })}
           title="عنوان H3"
         >
           <Heading3 size={16} />
         </ToolBtn>
         {divider}
+        <ToolBtn
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          active={editor.isActive({ textAlign: 'right' })}
+          title="محاذاة لليمين"
+        >
+          <AlignRight size={16} />
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          active={editor.isActive({ textAlign: 'center' })}
+          title="توسيط"
+        >
+          <AlignCenter size={16} />
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          active={editor.isActive({ textAlign: 'left' })}
+          title="محاذاة لليسار"
+        >
+          <AlignLeft size={16} />
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+          active={editor.isActive({ textAlign: 'justify' })}
+          title="ضبط (Justify)"
+        >
+          <AlignJustify size={16} />
+        </ToolBtn>
+        {divider}
+
         <ToolBtn
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={editor.isActive("bulletList")}
@@ -202,7 +279,7 @@ export default function RichEditor({ content = "", onChange }) {
           <ImageIcon size={16} />
         </ToolBtn>
         <ToolBtn onClick={addYoutube} title="فيديو يوتيوب">
-          <span className="text-[10px] font-black">YT</span>
+          <YTIcon size={16} />
         </ToolBtn>
         {uploading && (
           <span className="text-[10px] text-white/40 mr-2 font-black uppercase">
