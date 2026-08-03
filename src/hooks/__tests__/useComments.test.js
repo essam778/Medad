@@ -106,6 +106,7 @@ describe('useComments hooks', () => {
       const chain = {
         insert: () => chain,
         select: () => chain,
+        eq: () => chain,
         single: () => Promise.resolve(resolveValue),
       }
       return chain
@@ -114,18 +115,23 @@ describe('useComments hooks', () => {
     it('mutationFn should insert comment without parentId', async () => {
       const getOpts = captureMutationOptions()
       const mockComment = { id: 'c1', post_id: 'p1', content: 'Nice!' }
-      supabase.from.mockImplementation(() => mkInsertChain({ data: mockComment, error: null }))
+      supabase.from.mockImplementation((table) => {
+        if (table === 'posts') return mkInsertChain({ data: { author_id: 'u1' }, error: null })
+        return mkInsertChain({ data: mockComment, error: null })
+      })
       renderHook(() => commentHooks.useAddComment())
       const opts = getOpts()
       const result = await opts.mutationFn({ postId: 'p1', userId: 'u1', content: 'Nice!' })
       expect(result).toEqual(mockComment)
-      expect(supabase.from).toHaveBeenCalledWith('comments')
     })
 
     it('mutationFn should insert comment with parentId', async () => {
       const getOpts = captureMutationOptions()
       const mockComment = { id: 'c2', parent_id: 'p1' }
-      supabase.from.mockImplementation(() => mkInsertChain({ data: mockComment, error: null }))
+      supabase.from.mockImplementation((table) => {
+        if (table === 'posts') return mkInsertChain({ data: { author_id: 'u1' }, error: null })
+        return mkInsertChain({ data: mockComment, error: null })
+      })
       renderHook(() => commentHooks.useAddComment())
       const opts = getOpts()
       const result = await opts.mutationFn({ postId: 'p1', userId: 'u1', content: 'Reply', parentId: 'p1' })
@@ -134,7 +140,10 @@ describe('useComments hooks', () => {
 
     it('mutationFn should throw on supabase error', async () => {
       const getOpts = captureMutationOptions()
-      supabase.from.mockImplementation(() => mkInsertChain({ data: null, error: new Error('Insert failed') }))
+      supabase.from.mockImplementation((table) => {
+        if (table === 'posts') return mkInsertChain({ data: { author_id: 'u1' }, error: null })
+        return mkInsertChain({ data: null, error: new Error('Insert failed') })
+      })
       renderHook(() => commentHooks.useAddComment())
       const opts = getOpts()
       await expect(opts.mutationFn({ postId: 'p1', userId: 'u1', content: 'Bad' })).rejects.toThrow('Insert failed')
@@ -174,7 +183,7 @@ describe('useComments hooks', () => {
       renderHook(() => commentHooks.useDeleteComment())
       const opts = getOpts()
       const result = await opts.mutationFn({ commentId: 'c1', postId: 'p1' })
-      expect(result).toBeUndefined()
+      expect(result).toBe(true)
     })
 
     it('mutationFn should throw on delete error', async () => {

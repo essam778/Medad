@@ -29,7 +29,10 @@ describe('Notification System Integration', () => {
       const followers = [{ follower_id: 'u2' }, { follower_id: 'u3' }]
       supabase.from.mockImplementation((table) => {
         if (table === 'follows') return { select: () => ({ eq: () => t({ data: followers, error: null }) }) }
-        if (table === 'notifications') return { insert: () => t({ data: [{ id: 'n1' }, { id: 'n2' }], error: null }) }
+        if (table === 'notifications') return { 
+          insert: () => t({ data: [{ id: 'n1' }, { id: 'n2' }], error: null }),
+          select: () => ({ in: () => ({ eq: () => ({ eq: () => ({ eq: () => ({ is: () => t({ data: [], error: null }) }) }) }) }) })
+        }
         return mkChain()
       })
 
@@ -52,7 +55,10 @@ describe('Notification System Integration', () => {
     it('handles notification insert error gracefully', async () => {
       supabase.from.mockImplementation((table) => {
         if (table === 'follows') return { select: () => ({ eq: () => t({ data: [{ follower_id: 'u2' }], error: null }) }) }
-        if (table === 'notifications') return { insert: () => Promise.reject(new Error('DB insert failed')) }
+        if (table === 'notifications') return { 
+          insert: () => Promise.reject(new Error('DB insert failed')),
+          select: () => ({ in: () => ({ eq: () => ({ eq: () => ({ eq: () => ({ is: () => t({ data: [], error: null }) }) }) }) }) })
+        }
         return mkChain()
       })
 
@@ -116,7 +122,10 @@ describe('Notification System Integration', () => {
 
       supabase.from.mockImplementation((table) => {
         if (table === 'follows') return { select: () => ({ eq: () => t({ data: followers, error: null }) }) }
-        if (table === 'notifications') return { insert: () => t({ data: insertedNotifications, error: null }) }
+        if (table === 'notifications') return { 
+          insert: () => t({ data: insertedNotifications, error: null }),
+          select: () => ({ in: () => ({ eq: () => ({ eq: () => ({ eq: () => ({ is: () => t({ data: [], error: null }) }) }) }) }) })
+        }
         return mkChain()
       })
 

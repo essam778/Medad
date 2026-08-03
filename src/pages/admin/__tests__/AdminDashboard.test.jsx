@@ -34,7 +34,7 @@ vi.mock('../../../lib/supabase', () => {
 vi.mock('@/features/posts/services/post.service', () => ({
   PostService: {
     getAdminStats: vi.fn(),
-    getSiteSettings: vi.fn(),
+    getSiteSettings: vi.fn(() => Promise.resolve({ data: null, error: null })),
     getCreatorRequests: vi.fn(),
   },
 }))

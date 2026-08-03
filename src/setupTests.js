@@ -7,6 +7,7 @@ function mkThenableChain(resolveValue) {
   p.eq = () => p;
   p.neq = () => p;
   p.in = () => p;
+  p.gte = () => p;
   p.is = () => p;
   p.order = () => p;
   p.limit = () => p;
@@ -23,6 +24,7 @@ function mkChain() {
     select: () => chain,
     eq: () => chain,
     neq: () => chain,
+    gte: () => chain,
     in: () => chain,
     is: () => chain,
     order: () => chain,

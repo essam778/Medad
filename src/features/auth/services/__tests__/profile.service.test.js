@@ -9,6 +9,7 @@ describe('ProfileService', () => {
       select: () => chain,
       eq: () => chain,
       neq: () => chain,
+      gte: () => chain,
       in: () => chain,
       is: () => chain,
       order: () => chain,

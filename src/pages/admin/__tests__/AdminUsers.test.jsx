@@ -131,7 +131,7 @@ describe('AdminUsers', () => {
     useUpdateUserRole.mockReturnValue({ mutateAsync, isPending: false })
     renderAdmin()
     const roleButtons = screen.getAllByRole('button')
-    const roleBtn = roleButtons.find(b => b.closest('tr')?.textContent?.includes('User 1'))
+    const roleBtn = roleButtons.find(b => b.closest('tr')?.textContent?.includes('User 1') && !b.disabled)
     if (roleBtn) fireEvent.click(roleBtn)
     await waitFor(() => {
       expect(mutateAsync).toHaveBeenCalled()

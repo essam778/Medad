@@ -4,19 +4,12 @@ import { useSettingsStore } from '../settings.store'
 describe('useSettingsStore', () => {
   beforeEach(() => {
     useSettingsStore.setState({
-      theme: 'light',
       language: 'ar',
       sidebarOpen: true,
       fontSize: 'medium',
     })
   })
 
-  describe('setTheme', () => {
-    it('should set theme', () => {
-      useSettingsStore.getState().setTheme('dark')
-      expect(useSettingsStore.getState().theme).toBe('dark')
-    })
-  })
 
   describe('setLanguage', () => {
     it('should set language', () => {
@@ -60,13 +53,11 @@ describe('useSettingsStore', () => {
     it('should persist only non-sensitive state', () => {
       const state = useSettingsStore.getState()
       const partial = {
-        theme: state.theme,
         language: state.language,
         sidebarOpen: state.sidebarOpen,
         fontSize: state.fontSize,
       }
       expect(partial).toEqual({
-        theme: 'light',
         language: 'ar',
         sidebarOpen: true,
         fontSize: 'medium',

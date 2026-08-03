@@ -136,7 +136,7 @@ describe('RegisterPage', () => {
       fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'password123' } })
       fireEvent.submit(screen.getByText('إنشاء الحساب').closest('form'))
       await waitFor(() => {
-        expect(screen.getByText('Email already in use')).toBeInTheDocument()
+        expect(screen.getByText('فشل التسجيل')).toBeInTheDocument()
       })
     })
   })

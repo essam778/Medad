@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from '../AuthContext'
 
 vi.mock('../../services/auth.service', () => ({
   AuthService: {
-    getSession: vi.fn(),
+    getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
     onAuthStateChange: vi.fn(() => ({
       data: { subscription: { unsubscribe: vi.fn() } },
     })),

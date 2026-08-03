@@ -11,11 +11,19 @@ describe('NotificationService', () => {
 
   describe('notifyFollowers', () => {
     it('should return success with count 0 when no followers', async () => {
-      supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({ data: [], error: null })),
-        })),
-      })
+      const mockChain = (resolveValue) => {
+        const chain = {
+          select: vi.fn(() => chain),
+          eq: vi.fn(() => chain),
+          in: vi.fn(() => chain),
+          is: vi.fn(() => chain),
+          then: (resolve) => resolve(resolveValue)
+        }
+        return chain
+      }
+      
+      supabase.from.mockImplementation(() => mockChain({ data: [], error: null }))
+      
       const result = await NotificationService.notifyFollowers('author1', 'Author Name', {
         id: 'post1',
         title: 'New Post',
@@ -26,14 +34,27 @@ describe('NotificationService', () => {
 
     it('should notify all followers and return count', async () => {
       const insertSpy = vi.fn(() => Promise.resolve({ error: null }))
-      supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({
+      
+      const mockChain = (resolveValue) => {
+        const chain = {
+          select: vi.fn(() => chain),
+          eq: vi.fn(() => chain),
+          in: vi.fn(() => chain),
+          is: vi.fn(() => chain),
+          insert: insertSpy,
+          then: (resolve) => resolve(resolveValue)
+        }
+        return chain
+      }
+
+      supabase.from.mockImplementation((table) => {
+        if (table === 'follows') {
+          return mockChain({
             data: [{ follower_id: 'f1' }, { follower_id: 'f2' }, { follower_id: 'f3' }],
             error: null,
-          })),
-        })),
-        insert: insertSpy,
+          })
+        }
+        return mockChain({ data: [], error: null })
       })
 
       const result = await NotificationService.notifyFollowers('author1', 'Author Name', {
@@ -45,10 +66,21 @@ describe('NotificationService', () => {
     })
 
     it('should handle errors gracefully', async () => {
-      supabase.from.mockReturnValue({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => Promise.reject(new Error('network error'))),
-        })),
+      const mockChain = (resolveValue) => {
+        const chain = {
+          select: vi.fn(() => chain),
+          eq: vi.fn(() => chain),
+          in: vi.fn(() => chain),
+          is: vi.fn(() => chain),
+          then: (resolve) => resolve(resolveValue)
+        }
+        return chain
+      }
+
+      supabase.from.mockImplementation(() => {
+        const chain = mockChain(null)
+        chain.then = (resolve, reject) => reject(new Error('network error'))
+        return chain
       })
 
       const result = await NotificationService.notifyFollowers('author1', 'Author Name', {

@@ -19,6 +19,13 @@ vi.mock('@/features/posts/services/post.service', () => ({
   PostService: {
     getPostBySlug: vi.fn(),
     getPostById: vi.fn(),
+    getRelatedPosts: vi.fn(),
+    upsertPost: vi.fn(),
+    deletePost: vi.fn(),
+    getMyPosts: vi.fn(),
+    getSavedPosts: vi.fn(),
+    getInfinitePosts: vi.fn(),
+    getAdminPostsList: vi.fn(),
   },
 }))
 
@@ -119,37 +126,36 @@ describe('usePosts hooks', () => { // @smoke
 
     it('queryFn should return data on success', async () => {
       const { useInfinitePosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getInfinitePosts.mockResolvedValue([])
       renderHook(() => useInfinitePosts())
       const data = await capturedOpts.queryFn({ pageParam: 0 })
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getInfinitePosts).toHaveBeenCalledWith(expect.objectContaining({ pageParam: 0 }))
       expect(Array.isArray(data)).toBe(true)
     })
 
     it('queryFn should filter by tag when provided', async () => {
       const { useInfinitePosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getInfinitePosts.mockResolvedValue([])
       renderHook(() => useInfinitePosts({ tag: 'js' }))
       await capturedOpts.queryFn({ pageParam: 0 })
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getInfinitePosts).toHaveBeenCalledWith(expect.objectContaining({ tag: 'js' }))
     })
 
     it('queryFn should apply search when provided', async () => {
       const { useInfinitePosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getInfinitePosts.mockResolvedValue([])
       renderHook(() => useInfinitePosts({ search: 'test' }))
       await capturedOpts.queryFn({ pageParam: 0 })
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getInfinitePosts).toHaveBeenCalledWith(expect.objectContaining({ search: 'test' }))
     })
 
     it('queryFn should throw on error', async () => {
-      supabase.from = vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            order: vi.fn(() => ({
-              range: vi.fn(() => Promise.resolve({ data: null, error: new Error('db error') })),
-            })),
-          })),
-        })),
-      }))
       const { useInfinitePosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getInfinitePosts.mockRejectedValue(new Error('db error'))
       renderHook(() => useInfinitePosts())
       await expect(capturedOpts.queryFn({ pageParam: 0 })).rejects.toThrow('db error')
     })
@@ -259,42 +265,49 @@ describe('usePosts hooks', () => { // @smoke
 
     it('queryFn should fetch data with default params', async () => {
       const { useAdminPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getAdminPostsList.mockResolvedValue({ data: [], count: 0 })
       renderHook(() => useAdminPosts())
-      const result = await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('posts')
-      expect(result).toEqual({ data: [], count: 0 })
+      await capturedOpts.queryFn()
+      expect(PostService.getAdminPostsList).toHaveBeenCalledWith({
+        status: "",
+        page: 0,
+        authorId: null,
+        excludeMe: null,
+      })
     })
 
     it('queryFn should filter by status', async () => {
       const { useAdminPosts } = await import('../usePosts')
-      renderHook(() => useAdminPosts({ status: 'published' }))
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getAdminPostsList.mockResolvedValue({ data: [], count: 0 })
+      renderHook(() => useAdminPosts({ status: 'draft' }))
       await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getAdminPostsList).toHaveBeenCalledWith(expect.objectContaining({ status: 'draft' }))
     })
 
     it('queryFn should filter by authorId', async () => {
       const { useAdminPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getAdminPostsList.mockResolvedValue({ data: [], count: 0 })
       renderHook(() => useAdminPosts({ authorId: 'u1' }))
       await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getAdminPostsList).toHaveBeenCalledWith(expect.objectContaining({ authorId: 'u1' }))
     })
 
     it('queryFn should filter by excludeMe', async () => {
       const { useAdminPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getAdminPostsList.mockResolvedValue({ data: [], count: 0 })
       renderHook(() => useAdminPosts({ excludeMe: 'u1' }))
       await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getAdminPostsList).toHaveBeenCalledWith(expect.objectContaining({ excludeMe: 'u1' }))
     })
 
     it('queryFn should throw on error', async () => {
-      supabase.from = vi.fn(() => ({
-        select: vi.fn(() => ({
-          order: vi.fn(() => ({
-            range: vi.fn(() => mkThenableChain({ data: null, error: new Error('db error') })),
-          })),
-        })),
-      }))
       const { useAdminPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getAdminPostsList.mockRejectedValue(new Error('db error'))
       renderHook(() => useAdminPosts())
       await expect(capturedOpts.queryFn()).rejects.toThrow('db error')
     })
@@ -320,23 +333,20 @@ describe('usePosts hooks', () => { // @smoke
       expect(capturedOpts.enabled).toBe(false)
     })
 
-    it('queryFn should call supabase with correct chain', async () => {
+    it('queryFn should call PostService.getMyPosts', async () => {
       const { useMyPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getMyPosts.mockResolvedValue([])
       renderHook(() => useMyPosts('user1'))
       const result = await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getMyPosts).toHaveBeenCalledWith('user1')
       expect(Array.isArray(result)).toBe(true)
     })
 
     it('queryFn should throw on error', async () => {
-      supabase.from = vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            order: vi.fn(() => Promise.resolve({ data: null, error: new Error('db error') })),
-          })),
-        })),
-      }))
       const { useMyPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getMyPosts.mockRejectedValue(new Error('db error'))
       renderHook(() => useMyPosts('user1'))
       await expect(capturedOpts.queryFn()).rejects.toThrow('db error')
     })
@@ -352,9 +362,11 @@ describe('usePosts hooks', () => { // @smoke
 
     it('queryFn should fetch from saved_posts', async () => {
       const { useSavedPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getSavedPosts.mockResolvedValue([])
       renderHook(() => useSavedPosts('user1'))
       await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('saved_posts')
+      expect(PostService.getSavedPosts).toHaveBeenCalledWith('user1')
     })
 
     it('should enable only when userId exists', async () => {
@@ -364,14 +376,9 @@ describe('usePosts hooks', () => { // @smoke
     })
 
     it('queryFn should throw on error', async () => {
-      supabase.from = vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            order: vi.fn(() => Promise.resolve({ data: null, error: new Error('db error') })),
-          })),
-        })),
-      }))
       const { useSavedPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getSavedPosts.mockRejectedValue(new Error('db error'))
       renderHook(() => useSavedPosts('user1'))
       await expect(capturedOpts.queryFn()).rejects.toThrow('db error')
     })
@@ -387,6 +394,8 @@ describe('usePosts hooks', () => { // @smoke
 
     it('queryFn should return empty array when no tags', async () => {
       const { useRelatedPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getRelatedPosts.mockResolvedValue([])
       renderHook(() => useRelatedPosts('post1', []))
       const result = await capturedOpts.queryFn()
       expect(result).toEqual([])
@@ -394,9 +403,11 @@ describe('usePosts hooks', () => { // @smoke
 
     it('queryFn should fetch related posts when tags exist', async () => {
       const { useRelatedPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getRelatedPosts.mockResolvedValue([])
       renderHook(() => useRelatedPosts('post1', ['js']))
       const result = await capturedOpts.queryFn()
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.getRelatedPosts).toHaveBeenCalledWith('post1', ['js'])
       expect(Array.isArray(result)).toBe(true)
     })
 
@@ -407,18 +418,9 @@ describe('usePosts hooks', () => { // @smoke
     })
 
     it('queryFn should throw on error', async () => {
-      supabase.from = vi.fn(() => ({
-        select: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            neq: vi.fn(() => ({
-              overlaps: vi.fn(() => ({
-                limit: vi.fn(() => Promise.resolve({ data: null, error: new Error('db error') })),
-              })),
-            })),
-          })),
-        })),
-      }))
       const { useRelatedPosts } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.getRelatedPosts.mockRejectedValue(new Error('db error'))
       renderHook(() => useRelatedPosts('post1', ['js']))
       await expect(capturedOpts.queryFn()).rejects.toThrow('db error')
     })
@@ -437,56 +439,42 @@ describe('usePosts hooks', () => { // @smoke
 
     it('mutationFn should update post when id exists', async () => {
       const { useUpsertPost } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.upsertPost.mockResolvedValue(null)
       renderHook(() => useUpsertPost())
       const result = await capturedOpts.mutationFn({ id: 'post1', title: 'Updated', content: '<p>Hi</p>' })
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.upsertPost).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Updated', content: '<p>Hi</p>' }),
+        'post1'
+      )
       expect(result).toBeNull()
     })
 
     it('mutationFn should insert post when no id', async () => {
       const { useUpsertPost } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.upsertPost.mockResolvedValue(null)
       renderHook(() => useUpsertPost())
       const result = await capturedOpts.mutationFn({ title: 'New', content: '<p>Hello</p>' })
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.upsertPost).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'New', content: '<p>Hello</p>' }),
+        undefined
+      )
       expect(result).toBeNull()
     })
 
     it('mutationFn should throw on update error', async () => {
-      supabase.from = vi.fn(() => ({
-        update: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            select: vi.fn(() => ({
-              single: vi.fn(() => Promise.resolve({ data: null, error: new Error('update failed') })),
-            })),
-          })),
-        })),
-        insert: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: null, error: null })),
-          })),
-        })),
-      }))
       const { useUpsertPost } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.upsertPost.mockRejectedValue(new Error('update failed'))
       renderHook(() => useUpsertPost())
       await expect(capturedOpts.mutationFn({ id: 'post1', title: 'Test' })).rejects.toThrow('update failed')
     })
 
     it('mutationFn should throw on insert error', async () => {
-      supabase.from = vi.fn(() => ({
-        insert: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(() => Promise.resolve({ data: null, error: new Error('insert failed') })),
-          })),
-        })),
-        update: vi.fn(() => ({
-          eq: vi.fn(() => ({
-            select: vi.fn(() => ({
-              single: vi.fn(() => Promise.resolve({ data: null, error: null })),
-            })),
-          })),
-        })),
-      }))
       const { useUpsertPost } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.upsertPost.mockRejectedValue(new Error('insert failed'))
       renderHook(() => useUpsertPost())
       await expect(capturedOpts.mutationFn({ title: 'New Post' })).rejects.toThrow('insert failed')
     })
@@ -514,18 +502,17 @@ describe('usePosts hooks', () => { // @smoke
 
     it('mutationFn should call delete chain', async () => {
       const { useDeletePost } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.deletePost.mockResolvedValue(null)
       renderHook(() => useDeletePost())
       await capturedOpts.mutationFn('post1')
-      expect(supabase.from).toHaveBeenCalledWith('posts')
+      expect(PostService.deletePost).toHaveBeenCalledWith('post1')
     })
 
     it('mutationFn should throw on error', async () => {
-      supabase.from = vi.fn(() => ({
-        delete: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({ error: new Error('delete failed') })),
-        })),
-      }))
       const { useDeletePost } = await import('../usePosts')
+      const { PostService } = await import('@/features/posts/services/post.service')
+      PostService.deletePost.mockRejectedValue(new Error('delete failed'))
       renderHook(() => useDeletePost())
       await expect(capturedOpts.mutationFn('post1')).rejects.toThrow('delete failed')
     })

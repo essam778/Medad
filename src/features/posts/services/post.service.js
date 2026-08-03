@@ -91,20 +91,52 @@ export const PostService = {
   },
 
   async createPost(postData) {
-    return await supabase.from("posts").insert(postData).select().single();
+    const res = await supabase.from("posts").insert(postData).select().single();
+    if (res.error) throw res.error;
+    return res;
   },
 
   async updatePost(postId, updates) {
-    return await supabase
+    const res = await supabase
       .from("posts")
       .update(updates)
       .eq("id", postId)
       .select()
       .single();
+    if (res.error) throw res.error;
+    return res;
+  },
+
+  async upsertPost(payload, id = null) {
+    if (id) {
+      return this.updatePost(id, payload);
+    }
+    return this.createPost(payload);
+  },
+
+  async getRelatedPosts(postId, tags = []) {
+    if (!tags || tags.length === 0) return [];
+    
+    // Convert array of tags to Postgres array literal for overlaps operator: {tag1,tag2}
+    const tagsArrayLiteral = `{${tags.map(t => `"${t}"`).join(',')}}`;
+    
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id, title, slug, cover_image_url, reading_time, published_at, profiles!posts_author_id_fkey(full_name, avatar_url)")
+      .eq("status", "published")
+      .neq("id", postId)
+      .overlaps("tags", tagsArrayLiteral)
+      .order("views", { ascending: false })
+      .limit(3);
+
+    if (error) throw error;
+    return data || [];
   },
 
   async deletePost(postId) {
-    return await supabase.from("posts").delete().eq("id", postId);
+    const res = await supabase.from("posts").delete().eq("id", postId);
+    if (res.error) throw res.error;
+    return res;
   },
 
   async incrementViews(postId) {
