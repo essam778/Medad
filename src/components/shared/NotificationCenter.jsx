@@ -152,10 +152,14 @@ export default function NotificationCenter({ className = "" }) {
                       transition={{ delay: i * 0.05 }}
                       onClick={() => {
                         if (!n.read) markNotificationRead(n.id);
-                        if (n.type === "new_follow" && n.metadata?.author_id) {
-                          navigate(`/author/${n.metadata.author_id}`);
-                        } else if (n.metadata?.slug) {
-                          navigate(`/post/${n.metadata.slug}`);
+                        let metadata = n.metadata;
+                        if (typeof metadata === "string") {
+                          try { metadata = JSON.parse(metadata); } catch(e) {}
+                        }
+                        if (n.type === "new_follow" && metadata?.author_id) {
+                          navigate(`/author/${metadata.author_id}`);
+                        } else if (metadata?.slug) {
+                          navigate(`/post/${metadata.slug}`);
                         }
                         setOpen(false);
                       }}

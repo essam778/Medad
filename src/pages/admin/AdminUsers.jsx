@@ -311,7 +311,7 @@ export default function AdminUsers() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-3">
                           <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/5">
-                            {ROLES.filter((r) => r.value !== "admin").map(
+                            {ROLES.map(
                               (role) => (
                                 <button
                                   key={role.value}
