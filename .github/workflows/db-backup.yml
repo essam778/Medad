@@ -2,7 +2,7 @@ name: Database Backup
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
 
 jobs:
@@ -14,9 +14,15 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
 
       - name: Run pg_dump
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "Error: DATABASE_URL secret is empty. Please set it in GitHub repository secrets."
+            exit 1
+          fi
           DATE=$(date +%Y-%m-%d)
-          pg_dump "${{ secrets.DATABASE_URL }}" > "backup-${DATE}.sql"
+          pg_dump "$DATABASE_URL" > "backup-${DATE}.sql"
 
       - name: Compress backup
         run: |
@@ -24,8 +30,17 @@ jobs:
           gzip "backup-${DATE}.sql"
 
       - name: Clone private backup repo
+        env:
+          BACKUP_REPO_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+          BACKUP_REPO_URL: ${{ secrets.BACKUP_REPO_URL }}
         run: |
-          git clone "https://x-access-token:${{ secrets.BACKUP_REPO_TOKEN }}@${{ secrets.BACKUP_REPO_URL }}" backup-repo
+          if [ -z "$BACKUP_REPO_TOKEN" ] || [ -z "$BACKUP_REPO_URL" ]; then
+            echo "Error: BACKUP_REPO_TOKEN or BACKUP_REPO_URL secret is empty. Please set them."
+            exit 1
+          fi
+          # Ensure URL doesn't have https:// prefix if user provides it, or just handle it if they do.
+          # The original code expects BACKUP_REPO_URL to NOT have https:// (e.g. github.com/user/repo.git)
+          git clone "https://x-access-token:${BACKUP_REPO_TOKEN}@${BACKUP_REPO_URL}" backup-repo
 
       - name: Copy backup into repo
         run: |
@@ -39,5 +54,5 @@ jobs:
           git config user.name "backup-bot"
           git config user.email "backup-bot@users.noreply.github.com"
           git add "backup-${DATE}.sql.gz"
-          git commit -m "backup: ${DATE}"
+          git commit -m "backup: ${DATE}" || echo "No changes to commit"
           git push
