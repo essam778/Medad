@@ -132,6 +132,7 @@ export function CommentSection({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.05 }}
             key={comment.id}
+            id={`comment-${comment.id}`}
             className="group"
           >
             <div className="flex gap-4 md:gap-6">

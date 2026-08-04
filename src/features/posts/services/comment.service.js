@@ -52,7 +52,7 @@ export const CommentService = {
         message: `قام ${userData?.full_name || "مستخدم"} بالتعليق على مقالك "${postData.title}"`,
         entityType: "comment",
         entityId: data.id,
-        metadata: { slug: postData.slug },
+        metadata: { slug: postData.slug, comment_id: data.id },
       });
     }
 

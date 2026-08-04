@@ -116,13 +116,15 @@ export const PostService = {
 
   async getRelatedPosts(postId, tags = []) {
     if (!tags || tags.length === 0) return [];
-    
+
     // Convert array of tags to Postgres array literal for overlaps operator: {tag1,tag2}
-    const tagsArrayLiteral = `{${tags.map(t => `"${t}"`).join(',')}}`;
-    
+    const tagsArrayLiteral = `{${tags.map((t) => `"${t}"`).join(",")}}`;
+
     const { data, error } = await supabase
       .from("posts")
-      .select("id, title, slug, cover_image_url, reading_time, published_at, profiles!posts_author_id_fkey(full_name, avatar_url)")
+      .select(
+        "id, title, slug, cover_image_url, reading_time, published_at, profiles!posts_author_id_fkey(full_name, avatar_url)",
+      )
       .eq("status", "published")
       .neq("id", postId)
       .overlaps("tags", tagsArrayLiteral)
@@ -286,42 +288,6 @@ export const PostService = {
     return data || [];
   },
 
-  async getRelatedPosts(postId, tags = []) {
-    if (!tags.length) return [];
-    const { data, error } = await supabase
-      .from("posts")
-      .select(
-        "id, title, slug, cover_image_url, published_at, reading_time, profiles!posts_author_id_fkey (full_name)",
-      )
-      .eq("status", "published")
-      .neq("id", postId)
-      .overlaps("tags", tags)
-      .limit(3);
-    if (error) throw error;
-    return data || [];
-  },
-
-  async upsertPost(payload, id = null) {
-    if (id) {
-      const { data, error } = await supabase
-        .from("posts")
-        .update(payload)
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    } else {
-      const { data, error } = await supabase
-        .from("posts")
-        .insert(payload)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    }
-  },
-
   async setReaction(postId, userId, type) {
     const { data: existing, error: selectError } = await supabase
       .from("post_reactions")
@@ -353,27 +319,35 @@ export const PostService = {
       if (insertError) throw insertError;
 
       if (type === "like") {
-        const { data: postData } = await supabase
-          .from("posts")
-          .select("author_id, slug, title")
-          .eq("id", postId)
-          .single();
-        if (postData && postData.author_id !== userId) {
-          const { data: userData } = await supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", userId)
+        const { count: likeCount } = await supabase
+          .from("post_reactions")
+          .select("id", { count: "exact", head: true })
+          .eq("post_id", postId)
+          .eq("type", "like");
+
+        if (likeCount <= 20) {
+          const { data: postData } = await supabase
+            .from("posts")
+            .select("author_id, slug, title")
+            .eq("id", postId)
             .single();
-          NotificationService.notifyUser({
-            recipientId: postData.author_id,
-            actorId: userId,
-            type: "new_like",
-            title: "إعجاب جديد",
-            message: `أعجب ${userData?.full_name || "مستخدم"} بمقالك "${postData.title}"`,
-            entityType: "post_reaction",
-            entityId: postId,
-            metadata: { slug: postData.slug },
-          });
+          if (postData && postData.author_id !== userId) {
+            const { data: userData } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("id", userId)
+              .single();
+            NotificationService.notifyUser({
+              recipientId: postData.author_id,
+              actorId: userId,
+              type: "new_like",
+              title: "إعجاب جديد",
+              message: `أعجب ${userData?.full_name || "مستخدم"} بمقالك "${postData.title}"`,
+              entityType: "post_reaction",
+              entityId: postId,
+              metadata: { slug: postData.slug },
+            });
+          }
         }
       }
     }
@@ -514,21 +488,28 @@ export const PostService = {
         .insert({ follower_id: followerId, following_id: followingId });
       if (insertError) throw insertError;
 
-      const { data: userData } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", followerId)
-        .single();
-      NotificationService.notifyUser({
-        recipientId: followingId,
-        actorId: followerId,
-        type: "new_follow",
-        title: "متابع جديد",
-        message: `قام ${userData?.full_name || "مستخدم"} بمتابعة قناتك`,
-        entityType: "profile",
-        entityId: followerId,
-        metadata: { author_id: followerId },
-      });
+      const { count: followerCount } = await supabase
+        .from("follows")
+        .select("id", { count: "exact", head: true })
+        .eq("following_id", followingId);
+
+      if (followerCount <= 20) {
+        const { data: userData } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", followerId)
+          .single();
+        NotificationService.notifyUser({
+          recipientId: followingId,
+          actorId: followerId,
+          type: "new_follow",
+          title: "متابع جديد",
+          message: `قام ${userData?.full_name || "مستخدم"} بمتابعة قناتك`,
+          entityType: "profile",
+          entityId: followerId,
+          metadata: { author_id: followerId },
+        });
+      }
     }
   },
 

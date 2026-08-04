@@ -154,12 +154,32 @@ export default function NotificationCenter({ className = "" }) {
                         if (!n.read) markNotificationRead(n.id);
                         let metadata = n.metadata;
                         if (typeof metadata === "string") {
-                          try { metadata = JSON.parse(metadata); } catch(e) {}
+                          try {
+                            metadata = JSON.parse(metadata);
+                          } catch (e) {
+                            console.warn("Failed to parse metadata", e);
+                          }
                         }
                         if (n.type === "new_follow" && metadata?.author_id) {
                           navigate(`/author/${metadata.author_id}`);
                         } else if (metadata?.slug) {
-                          navigate(`/post/${metadata.slug}`);
+                          const hash = metadata.comment_id
+                            ? `#comment-${metadata.comment_id}`
+                            : "";
+                          navigate(`/post/${metadata.slug}${hash}`);
+
+                          if (metadata.comment_id) {
+                            setTimeout(() => {
+                              document
+                                .getElementById(
+                                  `comment-${metadata.comment_id}`,
+                                )
+                                ?.scrollIntoView({
+                                  behavior: "smooth",
+                                  block: "center",
+                                });
+                            }, 1000); // Wait for comments to load
+                          }
                         }
                         setOpen(false);
                       }}

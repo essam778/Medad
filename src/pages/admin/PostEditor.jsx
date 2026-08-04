@@ -567,6 +567,14 @@ export default function PostEditor() {
               </label>
             )}
 
+            <div className="mt-2 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl flex gap-3 items-start">
+              <span className="text-orange-400 text-lg">💡</span>
+              <p className="text-[10px] text-orange-200/70 leading-relaxed font-bold">
+                ننصح بتقليل الاعتماد على الصور المُولّدة بالذكاء الاصطناعي.
+                استخدام صور حقيقية أو تصاميم احترافية يعطي مصداقية أكبر لمقالك.
+              </p>
+            </div>
+
             {!form.cover_image_url &&
               import.meta.env.VITE_UNSPLASH_ACCESS_KEY && (
                 <button

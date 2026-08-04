@@ -215,7 +215,7 @@ export default function AuthorPage() {
 
             <div className="flex-1 text-center md:text-right space-y-6">
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6">
-                <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter leading-none">
+                <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-l from-white via-purple-100 to-white/70 drop-shadow-2xl py-2">
                   {channel.site_name}
                 </h1>
                 {user?.id !== channel.author_id && (
