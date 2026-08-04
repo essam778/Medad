@@ -2,7 +2,7 @@ name: Database Backup
 
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * 5" # يعمل أسبوعياً يوم الجمعة الساعة 2 صباحاً
   workflow_dispatch:
 
 jobs:
