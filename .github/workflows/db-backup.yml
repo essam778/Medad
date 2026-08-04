@@ -10,10 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
-
-      - name: Run pg_dump
+      - name: Run pg_dump using Docker (Postgres 17)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -22,7 +19,7 @@ jobs:
             exit 1
           fi
           DATE=$(date +%Y-%m-%d)
-          pg_dump "$DATABASE_URL" > "backup-${DATE}.sql"
+          docker run --rm postgres:17-alpine pg_dump "$DATABASE_URL" > "backup-${DATE}.sql"
 
       - name: Compress backup
         run: |
