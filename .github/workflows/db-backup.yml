@@ -35,9 +35,9 @@ jobs:
             echo "Error: BACKUP_REPO_TOKEN or BACKUP_REPO_URL secret is empty. Please set them."
             exit 1
           fi
-          # Ensure URL doesn't have https:// prefix if user provides it, or just handle it if they do.
-          # The original code expects BACKUP_REPO_URL to NOT have https:// (e.g. github.com/user/repo.git)
-          git clone "https://x-access-token:${BACKUP_REPO_TOKEN}@${BACKUP_REPO_URL}" backup-repo
+          # Remove https:// or http:// if present in the URL
+          CLEAN_URL=$(echo "$BACKUP_REPO_URL" | sed -e 's|^https://||' -e 's|^http://||')
+          git clone "https://x-access-token:${BACKUP_REPO_TOKEN}@${CLEAN_URL}" backup-repo
 
       - name: Copy backup into repo
         run: |
