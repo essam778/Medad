@@ -35,15 +35,6 @@ VITE_SENTRY_TRACES_SAMPLE_RATE=0.2     # optional
 - **Vercel** deployment: full CSP + security headers in `vercel.json`. SPA rewrite to `index.html`. `www` redirects to apex. Android via Capacitor.
 - **Supabase Edge Function**: `youtube-summarize` — unauthenticated CORS `*`, uses server-side `GEMINI_API_KEY`.
 
-## Critical issues (must-fix before production)
-
-1. **No RLS on core tables**: `posts`, `comments`, `post_reactions`, `saved_posts`, `tags`, `invite_codes`, `creator_requests`, `settings`, `post_views` all have **no RLS policies**. Any authenticated user can read/write/delete anything. RLS is only configured for: `notifications`, `collections`, `collection_posts`, `site_settings`, `follows`, `push_subscriptions`, `profiles` (delete only).
-2. **Gemini API key in client bundle**: `VITE_GEMINI_API_KEY` gets bundled into every page — anyone can extract and abuse it.
-3. **Edge function has no auth**: `supabase/functions/youtube-summarize/index.ts` sets `Access-Control-Allow-Origin: *` with no JWT check — anyone can call it and consume your Gemini quota.
-4. **corsproxy.io for YouTube scraping**: `PostEditor.jsx` sends video IDs through a third-party proxy. `youtube-summarize` edge function spoofs YouTube consent cookies.
-5. **Admin features in localStorage** (`AdminDashboard.jsx`): hero/trending post IDs stored client-side only, not in DB.
-6. **Error messages leak internals**: toasts pass `err.message` directly (Supabase errors expose table names, column details).
-
 ## Style conventions
 
 - Arabic-first UI: `dir="rtl"`, `lang="ar"`, `Intl.DateTimeFormat('ar-EG')` throughout.
@@ -61,6 +52,7 @@ VITE_SENTRY_TRACES_SAMPLE_RATE=0.2     # optional
 ## SQL migrations
 
 Run manually via Supabase Dashboard SQL Editor. Order:
+
 1. `supabase/full_upgrade.sql` (notifications, analytics views, triggers)
 2. `supabase/full_features_upgrade.sql` (collections, follows, site_settings, RLS fixes)
 3. `supabase/notifications_rls_fix.sql` (patch for notification insert policy)
